@@ -1,20 +1,21 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Models
 {
     public class Message
     {
-        public Guid Id { get; set; }
-        public Guid SenderId { get; set; }
-        public Guid ReceiverId { get; set; }
-        public Guid? BookingId { get; set; }
-        public string Content { get; set; }
-        public bool IsRead { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public int Id { get; set; }
+        public int SenderId { get; set; }
+        public int ReceiverId { get; set; }
+        public int? BookingId { get; set; }
+        [StringLength(1000)] public string? Content { get; set; }
+        public bool IsRead { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public User Sender { get; set; }
-        public User Receiver { get; set; }
-        public Booking Booking { get; set; }
+        public virtual User? Sender { get; set; }
+        public virtual User? Receiver { get; set; }
+        public virtual Booking? Booking { get; set; }
     }
 }

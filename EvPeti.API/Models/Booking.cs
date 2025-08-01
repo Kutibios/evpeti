@@ -1,22 +1,23 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Models
 {
     public class Booking
     {
-        public Guid Id { get; set; }
-        public Guid OwnerId { get; set; }
-        public Guid SitterId { get; set; }
-        public Guid PetId { get; set; }
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public int SitterId { get; set; }
+        public int PetId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public decimal TotalPrice { get; set; }
-        public string Status { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public decimal Price { get; set; }
+        [StringLength(50)] public string? Status { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public User Owner { get; set; }
-        public User Sitter { get; set; }
-        public Pet Pet { get; set; }
+        public virtual User? Owner { get; set; }
+        public virtual User? Sitter { get; set; }
+        public virtual Pet? Pet { get; set; }
     }
 }

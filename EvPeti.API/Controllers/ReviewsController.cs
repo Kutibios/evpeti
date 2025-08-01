@@ -1,3 +1,4 @@
+/*
 using Microsoft.AspNetCore.Mvc;
 using EvPeti.API.Data;
 using EvPeti.API.Models;
@@ -22,4 +23,5 @@ namespace EvPeti.API.Controllers
             return Ok(reviews);
         }
     }
-} 
+}
+*/ 

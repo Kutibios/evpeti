@@ -1,0 +1,187 @@
+<header>
+  <nav>
+    <div class="logo">
+      <a routerLink="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+        <img src="assets/logo.png" alt="EvPeti Logo">
+        <span>EvPeti</span>
+      </a>
+    </div>
+    <div class="nav-links">
+      <a href="#">İlanlar</a>
+      <a href="#">Hakkımızda</a>
+      <a href="#">İletişim</a>
+    </div>
+
+    <!-- Giriş yapmamış kullanıcılar için -->
+    <div class="auth-buttons" *ngIf="!isLoggedIn">
+      <button routerLink="/login">Giriş Yap</button>
+      <button routerLink="/register">Kayıt Ol</button>
+    </div>
+
+    <!-- Giriş yapmış kullanıcılar için -->
+    <div class="user-menu" *ngIf="isLoggedIn">
+      <div class="user-info">
+        <span class="user-name">{{ currentUser?.name }}</span>
+        <span class="user-rating">⭐ {{ currentUser?.rating }}</span>
+      </div>
+      <div class="user-buttons">
+        <button class="create-listing-btn">İlan Oluştur</button>
+        <button class="logout-btn" (click)="logout()">Çıkış Yap</button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="search-container">
+    <h1>Evcil Hayvanınız İçin Güvenilir Bakıcı Bulun</h1>
+    <p>Deneyimli ve güvenilir bakıcılar ile evcil hayvanınız güvende</p>
+    
+    <div class="search-form">
+      <div class="search-inputs">
+        <div class="input-group">
+          <label for="location">Yer</label>
+          <input type="text" id="location" placeholder="Şehir seçin">
+          <div id="location-dropdown" class="dropdown"></div>
+        </div>
+        
+        <div class="input-group">
+          <label for="start-date">Başlangıç Tarihi</label>
+          <input type="date" id="start-date">
+        </div>
+        
+        <div class="input-group">
+          <label for="end-date">Bitiş Tarihi</label>
+          <input type="date" id="end-date">
+        </div>
+        
+        <div class="input-group">
+          <label for="pet-type">Hayvan Türü</label>
+          <input type="text" id="pet-type" placeholder="Hayvan türü seçin">
+          <div id="pet-type-dropdown" class="dropdown"></div>
+        </div>
+      </div>
+      
+      <button id="search-button" class="search-button">
+        <img src="assets/search.png" alt="Ara">
+        Ara
+      </button>
+    </div>
+  </div>
+
+  <div class="listings-section">
+    <h2>Açılan İlanlar</h2>
+    
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="price-filter">Fiyat:</label>
+        <select id="price-filter">
+          <option value="">Tümü</option>
+          <option value="0-50">0-50 TL</option>
+          <option value="50-100">50-100 TL</option>
+          <option value="100-150">100-150 TL</option>
+          <option value="150-200">150-200 TL</option>
+          <option value="200-">200+ TL</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="pet-filter">Hayvan Türü:</label>
+        <select id="pet-filter">
+          <option value="">Tümü</option>
+          <option value="Köpek">Köpek</option>
+          <option value="Kedi">Kedi</option>
+          <option value="Kuş">Kuş</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="sort-filter">Sırala:</label>
+        <select id="sort-filter">
+          <option value="newest">En Yeni</option>
+          <option value="price-low">Fiyat (Düşük-Yüksek)</option>
+          <option value="price-high">Fiyat (Yüksek-Düşük)</option>
+          <option value="rating">Puan</option>
+        </select>
+      </div>
+      
+      <button class="clear-filters-btn">Filtreleri Temizle</button>
+    </div>
+
+    <div class="listings-grid" id="listings-grid">
+      <div class="listing-card">
+        <div class="listing-image">🐕</div>
+        <div class="listing-content">
+          <div class="listing-header">
+            <div>
+              <div class="listing-title">Deneyimli Köpek Bakıcısı</div>
+              <div class="listing-location">📍 İstanbul, Kadıköy</div>
+            </div>
+            <div class="listing-price">150 TL/gün</div>
+          </div>
+          <div class="listing-details">
+            <div class="listing-detail">🐾 Köpek</div>
+            <div class="listing-detail">⭐ 4.8</div>
+            <div class="listing-detail">📅 15.01.2024</div>
+          </div>
+          <div class="listing-description">5 yıllık deneyimle köpekleriniz için güvenilir bakım hizmeti. Ev ortamında sevgi dolu bakım.</div>
+          <div class="listing-footer">
+            <div class="listing-rating">⭐ 4.8 Puan</div>
+            <div class="listing-date">15.01.2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="listing-card">
+        <div class="listing-image">🐱</div>
+        <div class="listing-content">
+          <div class="listing-header">
+            <div>
+              <div class="listing-title">Kedi Bakım Uzmanı</div>
+              <div class="listing-location">📍 Ankara, Çankaya</div>
+            </div>
+            <div class="listing-price">120 TL/gün</div>
+          </div>
+          <div class="listing-details">
+            <div class="listing-detail">🐾 Kedi</div>
+            <div class="listing-detail">⭐ 4.9</div>
+            <div class="listing-detail">📅 14.01.2024</div>
+          </div>
+          <div class="listing-description">Kedileriniz için özel bakım. Ev ortamında sakin ve güvenli bir ortam.</div>
+          <div class="listing-footer">
+            <div class="listing-rating">⭐ 4.9 Puan</div>
+            <div class="listing-date">14.01.2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="listing-card">
+        <div class="listing-image">🦜</div>
+        <div class="listing-content">
+          <div class="listing-header">
+            <div>
+              <div class="listing-title">Kuş Bakım Hizmeti</div>
+              <div class="listing-location">📍 İzmir, Konak</div>
+            </div>
+            <div class="listing-price">80 TL/gün</div>
+          </div>
+          <div class="listing-details">
+            <div class="listing-detail">🐾 Kuş</div>
+            <div class="listing-detail">⭐ 4.7</div>
+            <div class="listing-detail">📅 13.01.2024</div>
+          </div>
+          <div class="listing-description">Kuşlarınız için profesyonel bakım. Özel beslenme ve temizlik.</div>
+          <div class="listing-footer">
+            <div class="listing-rating">⭐ 4.7 Puan</div>
+            <div class="listing-date">13.01.2024</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="load-more-container">
+      <button class="load-more-btn" id="load-more-btn">Daha Fazla Yükle</button>
+    </div>
+  </div>
+</main> 

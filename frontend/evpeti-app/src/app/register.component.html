@@ -1,0 +1,133 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <div class="logo" (click)="goToHome()" style="cursor: pointer;">
+        <img src="assets/logo.png" alt="EvPeti Logo">
+      </div>
+      <h1>Kayıt Ol</h1>
+      <p>Hesabınızı oluşturun</p>
+    </div>
+
+    <form class="register-form" (ngSubmit)="onSubmit()" #registerForm="ngForm">
+      <div class="form-group" [class.error]="errors.name">
+        <label for="name">Ad Soyad</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          [(ngModel)]="formData.name"
+          placeholder="Adınız ve soyadınız" 
+          required>
+        <div class="error-message" *ngIf="errors.name">{{ errors.name }}</div>
+      </div>
+
+      <div class="form-group" [class.error]="errors.email">
+        <label for="email">E-posta</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="formData.email"
+          placeholder="ornek@email.com" 
+          required>
+        <div class="error-message" *ngIf="errors.email">{{ errors.email }}</div>
+      </div>
+
+      <div class="form-group" [class.error]="errors.password">
+        <label for="password">Şifre</label>
+        <div class="password-input">
+          <input 
+            [type]="showPassword ? 'text' : 'password'"
+            id="password" 
+            name="password" 
+            [(ngModel)]="formData.password"
+            placeholder="En az 6 karakter" 
+            required>
+          <button type="button" class="password-toggle" (click)="togglePassword()">
+            <span class="eye-icon">{{ showPassword ? '🙈' : '👁️' }}</span>
+          </button>
+        </div>
+        <div class="error-message" *ngIf="errors.password">{{ errors.password }}</div>
+      </div>
+
+      <div class="form-group" [class.error]="errors.confirmPassword">
+        <label for="confirmPassword">Şifre Tekrarı</label>
+        <div class="password-input">
+          <input 
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword" 
+            name="confirmPassword" 
+            [(ngModel)]="formData.confirmPassword"
+            placeholder="Şifrenizi tekrar girin" 
+            required>
+          <button type="button" class="password-toggle" (click)="toggleConfirmPassword()">
+            <span class="eye-icon">{{ showConfirmPassword ? '🙈' : '👁️' }}</span>
+          </button>
+        </div>
+        <div class="error-message" *ngIf="errors.confirmPassword">{{ errors.confirmPassword }}</div>
+      </div>
+
+      <div class="form-group" [class.error]="errors.city">
+        <label for="city">Şehir</label>
+        <select id="city" name="city" [(ngModel)]="formData.city" required>
+          <option value="">Şehir seçin</option>
+          <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+        </select>
+        <div class="error-message" *ngIf="errors.city">{{ errors.city }}</div>
+      </div>
+
+      <div class="form-group" [class.error]="errors.phone">
+        <label for="phone">Telefon Numarası</label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone" 
+          [(ngModel)]="formData.phone"
+          placeholder="05XX XXX XX XX" 
+          required>
+        <div class="error-message" *ngIf="errors.phone">{{ errors.phone }}</div>
+      </div>
+
+      <div class="form-group checkbox-group" [class.error]="errors.agreeToTerms">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="formData.isSitter" name="isSitter">
+          <span class="checkmark"></span>
+          Evcil hayvan bakıcısı olarak kayıt olmak istiyorum
+        </label>
+      </div>
+
+      <div class="form-group checkbox-group" [class.error]="errors.agreeToTerms">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="formData.agreeToTerms" name="agreeToTerms" required>
+          <span class="checkmark"></span>
+          <span class="terms-text">
+            <a href="#" target="_blank">Kullanım Şartları</a> ve 
+            <a href="#" target="_blank">Gizlilik Politikası</a>'nı okudum ve kabul ediyorum
+          </span>
+        </label>
+        <div class="error-message" *ngIf="errors.agreeToTerms">{{ errors.agreeToTerms }}</div>
+      </div>
+
+      <button type="submit" class="register-btn" [class.loading]="isLoading" [disabled]="isLoading">
+        <span class="btn-text" *ngIf="!isLoading">Kayıt Ol</span>
+        <span class="btn-loading" *ngIf="isLoading">Kayıt yapılıyor...</span>
+      </button>
+    </form>
+
+    <div class="register-footer">
+      <p>Zaten hesabınız var mı? <a href="#" class="login-link" (click)="goToLogin()">Giriş yapın</a></p>
+    </div>
+
+    <div class="social-register">
+      <p>Veya şununla kayıt olun:</p>
+      <div class="social-buttons">
+        <button class="social-btn google-btn" type="button">
+          <span>Google</span>
+        </button>
+        <button class="social-btn facebook-btn" type="button">
+          <span>Facebook</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

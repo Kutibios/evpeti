@@ -1,20 +1,21 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Models
 {
     public class Review
     {
-        public Guid Id { get; set; }
-        public Guid FromId { get; set; }
-        public Guid ToId { get; set; }
-        public Guid BookingId { get; set; }
-        public int Rating { get; set; }
-        public string Comment { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public int Id { get; set; }
+        public int FromId { get; set; }
+        public int ToId { get; set; }
+        public int? BookingId { get; set; }
+        [Range(1, 5)] public int Rating { get; set; }
+        [StringLength(1000)] public string? Comment { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public User From { get; set; }
-        public User To { get; set; }
-        public Booking Booking { get; set; }
+        public virtual User? From { get; set; }
+        public virtual User? To { get; set; }
+        public virtual Booking? Booking { get; set; }
     }
 }

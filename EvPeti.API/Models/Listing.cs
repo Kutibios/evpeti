@@ -1,23 +1,25 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Models
 {
     public class Listing
     {
-        public Guid Id { get; set; }
-        public Guid UserId { get; set; }
-        public string Type { get; set; }
-        public Guid? PetId { get; set; }
-        public string Location { get; set; }
-        public DateTime AvailableFrom { get; set; }
-        public DateTime AvailableTo { get; set; }
-        public decimal PricePerDay { get; set; }
-        public string Description { get; set; }
-        public string Status { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public int PetId { get; set; }
+        [StringLength(50)] public string? Type { get; set; }
+        public decimal Price { get; set; }
+        [StringLength(100)] public string? Location { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public bool IsAvailable { get; set; } = true;
+        [StringLength(1000)] public string? Description { get; set; }
+        [StringLength(50)] public string? Status { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public User User { get; set; }
-        public Pet Pet { get; set; }
+        public virtual User? User { get; set; }
+        public virtual Pet? Pet { get; set; }
     }
 }

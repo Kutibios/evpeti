@@ -1,23 +1,35 @@
 using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Models
 {
     public class User
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string City { get; set; }
-        public bool IsSitter { get; set; }
-        public string ProfilePhoto { get; set; }
-        public string Bio { get; set; }
-        public decimal Rating { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        // Navigation properties
-        public ICollection<Booking> OwnerBookings { get; set; }
-        public ICollection<Booking> SitterBookings { get; set; }
+        public int Id { get; set; }
+        
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; } = string.Empty;
+        
+        [Required]
+        [EmailAddress]
+        [StringLength(100)]
+        public string Email { get; set; } = string.Empty;
+        
+        [Required]
+        [StringLength(255)]
+        public string Password { get; set; } = string.Empty;
+        
+        [StringLength(50)]
+        public string? City { get; set; }
+        
+        [StringLength(20)]
+        public string? Phone { get; set; }
+        
+        public bool IsSitter { get; set; } = false;
+        
+        public decimal Rating { get; set; } = 0;
+        
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
