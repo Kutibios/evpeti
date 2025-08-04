@@ -25,8 +25,31 @@
         <span class="user-rating">⭐ {{ currentUser?.rating }}</span>
       </div>
       <div class="user-buttons">
-        <button class="create-listing-btn">İlan Oluştur</button>
-        <button class="logout-btn" (click)="logout()">Çıkış Yap</button>
+        <div class="profile-btn-container">
+          <button class="profile-btn" (click)="toggleProfileDropdown()">
+            <i>👤</i>
+            Profilim
+            <i>▼</i>
+          </button>
+          <div class="profile-dropdown" [class.show]="showProfileDropdown">
+            <div class="profile-dropdown-item" (click)="goToProfile()">
+              <i>👤</i>
+              Profilim
+            </div>
+            <div class="profile-dropdown-item" (click)="goToMyBookings()">
+              <i>📅</i>
+              Rezervasyonlarım
+            </div>
+            <div class="profile-dropdown-item" (click)="goToMessages()">
+              <i>💬</i>
+              Mesajlarım
+            </div>
+            <div class="profile-dropdown-item" (click)="logout()">
+              <i>🚪</i>
+              Çıkış Yap
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -37,35 +60,52 @@
     <h1>Evcil Hayvanınız İçin Güvenilir Bakıcı Bulun</h1>
     <p>Deneyimli ve güvenilir bakıcılar ile evcil hayvanınız güvende</p>
     
-    <div class="search-form">
-      <div class="search-inputs">
-        <div class="input-group">
-          <label for="location">Yer</label>
-          <input type="text" id="location" placeholder="Şehir seçin">
-          <div id="location-dropdown" class="dropdown"></div>
+    <div class="search-and-actions">
+      <div class="search-form">
+        <div class="search-inputs">
+          <div class="input-group">
+            <label for="location">Yer</label>
+            <input type="text" id="location" placeholder="Şehir seçin">
+            <div id="location-dropdown" class="dropdown"></div>
+          </div>
+          
+          <div class="input-group">
+            <label for="start-date">Başlangıç Tarihi</label>
+            <input type="date" id="start-date">
+          </div>
+          
+          <div class="input-group">
+            <label for="end-date">Bitiş Tarihi</label>
+            <input type="date" id="end-date">
+          </div>
+          
+          <div class="input-group">
+            <label for="pet-type">Hayvan Türü</label>
+            <input type="text" id="pet-type" placeholder="Hayvan türü seçin">
+            <div id="pet-type-dropdown" class="dropdown"></div>
+          </div>
         </div>
         
-        <div class="input-group">
-          <label for="start-date">Başlangıç Tarihi</label>
-          <input type="date" id="start-date">
-        </div>
-        
-        <div class="input-group">
-          <label for="end-date">Bitiş Tarihi</label>
-          <input type="date" id="end-date">
-        </div>
-        
-        <div class="input-group">
-          <label for="pet-type">Hayvan Türü</label>
-          <input type="text" id="pet-type" placeholder="Hayvan türü seçin">
-          <div id="pet-type-dropdown" class="dropdown"></div>
-        </div>
+        <button id="search-button" class="search-button">
+          <img src="assets/search.png" alt="Ara">
+          Ara
+        </button>
       </div>
       
-      <button id="search-button" class="search-button">
-        <img src="assets/search.png" alt="Ara">
-        Ara
-      </button>
+      <div class="action-buttons">
+        <button class="create-pet-profile-btn" *ngIf="!isLoggedIn" (click)="showLoginRequired('pet')">
+          🐕 Pet Profili Oluştur
+        </button>
+        <button class="create-sitter-profile-btn" *ngIf="!isLoggedIn" (click)="showLoginRequired('sitter')">
+          🏠 Bakıcı Profili Oluştur
+        </button>
+        <button class="create-pet-profile-btn" *ngIf="isLoggedIn" (click)="createPetProfile()">
+          🐕 Pet Profili Oluştur
+        </button>
+        <button class="create-sitter-profile-btn" *ngIf="isLoggedIn" (click)="createSitterProfile()">
+          🏠 Bakıcı Profili Oluştur
+        </button>
+      </div>
     </div>
   </div>
 

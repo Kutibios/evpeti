@@ -16,8 +16,8 @@ namespace EvPeti.API.Models
         [StringLength(500)] public string? HealthNotes { get; set; }
         [StringLength(255)] public string? Photo { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
+        
         // Navigation property
-        public virtual User? User { get; set; }
+        public User? User { get; set; }
     }
 }

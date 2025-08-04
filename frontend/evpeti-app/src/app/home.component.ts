@@ -14,6 +14,7 @@ import { AuthService, User } from './auth.service';
 export class HomeComponent implements OnInit {
   isLoggedIn: boolean = false;
   currentUser: User | null = null;
+  showProfileDropdown: boolean = false;
 
   constructor(private router: Router, private authService: AuthService) {}
 
@@ -31,13 +32,70 @@ export class HomeComponent implements OnInit {
     });
     this.setupDropdowns();
     this.setupSearch();
+    this.setupDropdownCloseListener();
+  }
+
+  setupDropdownCloseListener() {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        const profileBtnContainer = document.querySelector('.profile-btn-container');
+        
+        if (profileBtnContainer && !profileBtnContainer.contains(target)) {
+          this.showProfileDropdown = false;
+        }
+      });
+    }
+  }
+
+  toggleProfileDropdown() {
+    this.showProfileDropdown = !this.showProfileDropdown;
   }
 
   logout() {
     console.log('Logout called from home component');
     this.authService.logout();
+    this.showProfileDropdown = false;
     // Sayfayı yenilemek yerine router ile yönlendir
     this.router.navigate(['/']);
+  }
+
+  createPetProfile() {
+    console.log('Create pet profile clicked');
+    // Pet profili oluşturma sayfasına yönlendir
+    this.router.navigate(['/pet-profile']);
+  }
+
+  createSitterProfile() {
+    console.log('Create sitter profile clicked');
+    // Bakıcı profili oluşturma sayfasına yönlendir
+    this.router.navigate(['/sitter-profile']);
+  }
+
+  showLoginRequired(type: 'pet' | 'sitter') {
+    const message = type === 'pet' 
+      ? 'Pet profili oluşturmak için önce giriş yapmalısınız!'
+      : 'Bakıcı profili oluşturmak için önce giriş yapmalısınız!';
+    
+    alert(message);
+    this.router.navigate(['/login']);
+  }
+
+  goToProfile() {
+    this.showProfileDropdown = false;
+    this.router.navigate(['/profile']);
+  }
+
+  goToMyBookings() {
+    this.showProfileDropdown = false;
+    // Şimdilik profil sayfasına yönlendir, daha sonra rezervasyon sayfası oluşturulabilir
+    this.router.navigate(['/profile']);
+  }
+
+  goToMessages() {
+    this.showProfileDropdown = false;
+    // Şimdilik profil sayfasına yönlendir, daha sonra mesaj sayfası oluşturulabilir
+    this.router.navigate(['/profile']);
   }
 
   setupDropdowns() {
@@ -50,109 +108,81 @@ export class HomeComponent implements OnInit {
   }
 
   setupLocationDropdown() {
-    if (typeof document !== 'undefined') {
-      const locationInput = document.getElementById('location') as HTMLInputElement;
-      const locationDropdown = document.getElementById('location-dropdown') as HTMLDivElement;
-      
-      if (locationInput && locationDropdown) {
-        locationInput.addEventListener('focus', () => {
-          locationDropdown.style.display = 'block';
-        });
+    const locationInput = document.getElementById('location') as HTMLInputElement;
+    const locationDropdown = document.getElementById('location-dropdown') as HTMLDivElement;
+    
+    if (!locationInput || !locationDropdown) return;
 
-        locationInput.addEventListener('blur', () => {
-          setTimeout(() => {
-            locationDropdown.style.display = 'none';
-          }, 200);
-        });
+    const cities = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana', 'Konya', 'Gaziantep', 'Mersin', 'Diyarbakır'];
+    
+    locationInput.addEventListener('focus', () => {
+      this.displayDropdown(locationDropdown, cities, locationInput);
+    });
 
-        // Dropdown item click events
-        const dropdownItems = locationDropdown.querySelectorAll('.dropdown-item');
-        dropdownItems.forEach(item => {
-          item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const selectedLocation = (e.target as HTMLElement).textContent;
-            if (selectedLocation && locationInput) {
-              locationInput.value = selectedLocation;
-              locationDropdown.style.display = 'none';
-            }
-          });
-        });
-      }
-    }
+    locationInput.addEventListener('input', () => {
+      const value = locationInput.value.toLowerCase();
+      const filteredCities = cities.filter(city => 
+        city.toLowerCase().includes(value)
+      );
+      this.displayDropdown(locationDropdown, filteredCities, locationInput);
+    });
   }
 
   setupPetTypeDropdown() {
-    if (typeof document !== 'undefined') {
-      const petTypeInput = document.getElementById('pet-type') as HTMLInputElement;
-      const petTypeDropdown = document.getElementById('pet-type-dropdown') as HTMLDivElement;
-      
-      if (petTypeInput && petTypeDropdown) {
-        petTypeInput.addEventListener('focus', () => {
-          petTypeDropdown.style.display = 'block';
-        });
+    const petTypeInput = document.getElementById('pet-type') as HTMLInputElement;
+    const petTypeDropdown = document.getElementById('pet-type-dropdown') as HTMLDivElement;
+    
+    if (!petTypeInput || !petTypeDropdown) return;
 
-        petTypeInput.addEventListener('blur', () => {
-          setTimeout(() => {
-            petTypeDropdown.style.display = 'none';
-          }, 200);
-        });
+    const petTypes = ['Köpek', 'Kedi', 'Kuş', 'Balık', 'Hamster', 'Tavşan', 'Diğer'];
+    
+    petTypeInput.addEventListener('focus', () => {
+      this.displayDropdown(petTypeDropdown, petTypes, petTypeInput);
+    });
 
-        // Dropdown item click events
-        const dropdownItems = petTypeDropdown.querySelectorAll('.dropdown-item');
-        dropdownItems.forEach(item => {
-          item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const selectedPetType = (e.target as HTMLElement).textContent;
-            if (selectedPetType && petTypeInput) {
-              petTypeInput.value = selectedPetType;
-              petTypeDropdown.style.display = 'none';
-            }
-          });
-        });
-      }
-    }
+    petTypeInput.addEventListener('input', () => {
+      const value = petTypeInput.value.toLowerCase();
+      const filteredTypes = petTypes.filter(type => 
+        type.toLowerCase().includes(value)
+      );
+      this.displayDropdown(petTypeDropdown, filteredTypes, petTypeInput);
+    });
   }
 
   displayDropdown(dropdown: HTMLDivElement, items: string[], input: HTMLInputElement) {
     dropdown.innerHTML = '';
+    dropdown.style.display = 'block';
     
-    if (items.length === 0) {
-      dropdown.style.display = 'none';
-      return;
-    }
-
     items.forEach(item => {
-      const option = document.createElement('div');
-      option.className = 'dropdown-option';
-      option.textContent = item;
-      option.addEventListener('click', () => {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item';
+      div.textContent = item;
+      div.addEventListener('click', () => {
         input.value = item;
         dropdown.style.display = 'none';
       });
-      dropdown.appendChild(option);
+      dropdown.appendChild(div);
     });
-
-    dropdown.style.display = 'block';
   }
 
   setupSearchButton() {
-    if (typeof document !== 'undefined') {
-      const searchButton = document.getElementById('search-button');
-      if (searchButton) {
-        searchButton.addEventListener('click', () => {
-          this.performSearch();
-        });
-      }
+    const searchButton = document.getElementById('search-button');
+    if (searchButton) {
+      searchButton.addEventListener('click', () => {
+        this.performSearch();
+      });
     }
   }
 
   performSearch() {
-    const searchData = {
-      location: (document.getElementById('location') as HTMLInputElement)?.value || '',
-      startDate: (document.getElementById('start-date') as HTMLInputElement)?.value || '',
-      endDate: (document.getElementById('end-date') as HTMLInputElement)?.value || '',
-      petType: (document.getElementById('pet-type') as HTMLInputElement)?.value || ''
-    };
-    console.log('Arama verileri:', searchData);
+    const location = (document.getElementById('location') as HTMLInputElement)?.value;
+    const startDate = (document.getElementById('start-date') as HTMLInputElement)?.value;
+    const endDate = (document.getElementById('end-date') as HTMLInputElement)?.value;
+    const petType = (document.getElementById('pet-type') as HTMLInputElement)?.value;
+    
+    console.log('Search performed with:', { location, startDate, endDate, petType });
+    
+    // Burada arama sonuçlarını gösterebiliriz
+    alert(`Arama yapılıyor...\nYer: ${location}\nBaşlangıç: ${startDate}\nBitiş: ${endDate}\nHayvan Türü: ${petType}`);
   }
 } 

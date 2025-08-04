@@ -7,7 +7,6 @@ namespace EvPeti.API.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public int PetId { get; set; }
         [StringLength(50)] public string? Type { get; set; }
         public decimal Price { get; set; }
         [StringLength(100)] public string? Location { get; set; }
@@ -17,9 +16,8 @@ namespace EvPeti.API.Models
         [StringLength(1000)] public string? Description { get; set; }
         [StringLength(50)] public string? Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // Navigation properties
-        public virtual User? User { get; set; }
-        public virtual Pet? Pet { get; set; }
+        
+        // Navigation property
+        public User? User { get; set; }
     }
 }

@@ -102,7 +102,7 @@ export class LoginComponent implements OnInit {
       if (response) {
         // AuthService ile giriş yap
         const user: User = {
-          id: response.user.id.toString(),
+          id: Number(response.user.id),
           name: response.user.name,
           email: response.user.email,
           city: response.user.city,
@@ -144,7 +144,7 @@ export class LoginComponent implements OnInit {
         
         // Test kullanıcı bilgilerini AuthService ile kaydet
         const testUser: User = {
-          id: 'test-user-id',
+          id: 1,
           name: 'Test Kullanıcı',
           email: this.formData.email,
           city: 'İstanbul',
@@ -170,7 +170,7 @@ export class LoginComponent implements OnInit {
           
           // Kullanıcı bilgilerini AuthService ile kaydet
           const loginUser: User = {
-            id: user.id,
+            id: Number(user.id),
             name: user.name,
             email: user.email,
             city: user.city,

@@ -1,0 +1,133 @@
+<div class="profile-container">
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="logo-container">
+        <img src="assets/logo.png" alt="EvPeti Logo" class="logo" (click)="goHome()">
+      </div>
+      <h1>👤 Profilim</h1>
+      <div class="user-info">
+        <h2>{{ user?.name }}</h2>
+        <p>{{ user?.email }} | {{ user?.city }}</p>
+      </div>
+      <button class="refresh-btn" (click)="loadUserData()" title="Yenile" [disabled]="isLoading">
+        <span *ngIf="!isLoading">🔄 Yenile</span>
+        <span *ngIf="isLoading">⏳ Yenileniyor...</span>
+      </button>
+    </div>
+
+    <div class="profile-content">
+      <!-- Pet Profilleri Bölümü -->
+      <div class="section">
+        <div class="section-header">
+          <h3>🐕 Pet Profillerim</h3>
+          <button class="create-btn" (click)="createPetProfile()">
+            + Yeni Pet Profili
+          </button>
+        </div>
+        
+        <div class="items-grid" *ngIf="!isLoading">
+          <div class="item-card" *ngFor="let pet of pets">
+            <div class="item-header">
+              <h4>{{ pet.name }}</h4>
+              <div class="item-actions">
+                <span class="species">{{ pet.species }}</span>
+                <div class="action-buttons">
+                  <button class="edit-btn" (click)="editPet(pet)" title="Düzenle">
+                    ✏️
+                  </button>
+                  <button class="delete-btn" (click)="deletePet(pet.id)" title="Sil">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="item-details">
+              <p><strong>Cins:</strong> {{ pet.breed }}</p>
+              <p><strong>Yaş:</strong> {{ pet.age }} yaşında</p>
+              <p><strong>Cinsiyet:</strong> {{ pet.gender }}</p>
+              <p><strong>Kilo:</strong> {{ pet.weight }} kg</p>
+              <p *ngIf="pet.healthNotes"><strong>Sağlık Notları:</strong> {{ pet.healthNotes }}</p>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="pets.length === 0">
+            <p>Henüz pet profili oluşturmadınız.</p>
+            <button class="create-btn" (click)="createPetProfile()">
+              İlk Pet Profilinizi Oluşturun
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bakıcı İlanları Bölümü -->
+      <div class="section">
+        <div class="section-header">
+          <h3>🏠 Bakıcı İlanlarım</h3>
+          <button class="create-btn" (click)="createSitterProfile()">
+            + Yeni İlan
+          </button>
+        </div>
+        
+        <div class="items-grid" *ngIf="!isLoading">
+          <div class="item-card" *ngFor="let listing of listings">
+            <div class="item-header">
+              <h4>{{ listing.type }}</h4>
+              <div class="item-actions">
+                <span class="price">{{ listing.price }} ₺</span>
+                <div class="action-buttons">
+                  <button class="edit-btn" (click)="editListing(listing)" title="Düzenle">
+                    ✏️
+                  </button>
+                  <button class="delete-btn" (click)="deleteListing(listing.id)" title="Sil">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="item-details">
+              <p><strong>Konum:</strong> {{ listing.location }}</p>
+              <p><strong>Başlangıç:</strong> {{ listing.startDate | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Bitiş:</strong> {{ listing.endDate | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Durum:</strong> 
+                <span class="status" [class.active]="listing.isAvailable">
+                  {{ listing.isAvailable ? 'Aktif' : 'Pasif' }}
+                </span>
+              </p>
+              <p *ngIf="listing.description"><strong>Açıklama:</strong> {{ listing.description }}</p>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="listings.length === 0">
+            <p>Henüz bakıcı ilanı oluşturmadınız.</p>
+            <button class="create-btn" (click)="createSitterProfile()">
+              İlk İlanınızı Oluşturun
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+        <p>Veriler yükleniyor...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-state" *ngIf="errorMessage">
+        <div class="error-icon">⚠️</div>
+        <h3>Bağlantı Hatası</h3>
+        <p>{{ errorMessage }}</p>
+        <div class="error-actions">
+          <button class="retry-btn" (click)="loadUserData()">Tekrar Dene</button>
+          <button class="home-btn" (click)="goHome()">Ana Sayfaya Dön</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <button class="logout-btn" (click)="logout()">
+        Çıkış Yap
+      </button>
+    </div>
+  </div>
+</div> 

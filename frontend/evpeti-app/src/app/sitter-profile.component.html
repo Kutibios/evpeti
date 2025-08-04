@@ -1,0 +1,105 @@
+<div class="sitter-profile-container">
+  <div class="sitter-profile-card">
+    <div class="sitter-profile-header">
+      <div class="logo-container">
+        <img src="assets/logo.png" alt="EvPeti Logo" class="logo" (click)="goHome()">
+      </div>
+      <h1>🏠 Bakıcı Profili Oluştur</h1>
+      <p>Bakıcılık hizmetiniz için ilan oluşturun</p>
+    </div>
+
+    <form class="sitter-profile-form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="type">Hizmet Türü *</label>
+        <select id="type" name="type" [(ngModel)]="listing.type" required>
+          <option value="">Hizmet türü seçin</option>
+          <option value="Ev Bakıcılığı">Ev Bakıcılığı</option>
+          <option value="Günlük Bakım">Günlük Bakım</option>
+          <option value="Gece Bakımı">Gece Bakımı</option>
+          <option value="Hafta Sonu Bakımı">Hafta Sonu Bakımı</option>
+          <option value="Tatil Bakımı">Tatil Bakımı</option>
+          <option value="Özel Bakım">Özel Bakım</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="price">Günlük Ücret (TL) *</label>
+        <input 
+          type="number" 
+          id="price" 
+          name="price" 
+          [(ngModel)]="listing.price" 
+          required 
+          min="0" 
+          step="0.01" 
+          placeholder="Günlük ücret">
+      </div>
+
+      <div class="form-group">
+        <label for="location">Lokasyon *</label>
+        <input 
+          type="text" 
+          id="location" 
+          name="location" 
+          [(ngModel)]="listing.location" 
+          required 
+          placeholder="Şehir, ilçe">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="startDate">Başlangıç Tarihi *</label>
+          <input 
+            type="date" 
+            id="startDate" 
+            name="startDate" 
+            [(ngModel)]="listing.startDate" 
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="endDate">Bitiş Tarihi *</label>
+          <input 
+            type="date" 
+            id="endDate" 
+            name="endDate" 
+            [(ngModel)]="listing.endDate" 
+            required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Hizmet Açıklaması *</label>
+        <textarea 
+          id="description" 
+          name="description" 
+          [(ngModel)]="listing.description" 
+          rows="5" 
+          required 
+          placeholder="Deneyimleriniz, özel hizmetleriniz, ev ortamınız hakkında bilgi verin..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Durum</label>
+        <select id="status" name="status" [(ngModel)]="listing.status">
+          <option value="Active">Aktif</option>
+          <option value="Inactive">Pasif</option>
+        </select>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-buttons">
+        <button type="button" class="cancel-btn" (click)="onCancel()">
+          İptal
+        </button>
+        <button type="submit" class="submit-btn" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Bakıcı Profili Oluştur</span>
+          <span *ngIf="isLoading" class="loading-text">Oluşturuluyor...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div> 

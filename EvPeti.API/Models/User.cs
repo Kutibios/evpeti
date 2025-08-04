@@ -31,5 +31,9 @@ namespace EvPeti.API.Models
         public decimal Rating { get; set; } = 0;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Navigation properties
+        public ICollection<Pet> Pets { get; set; } = new List<Pet>();
+        public ICollection<Listing> Listings { get; set; } = new List<Listing>();
     }
 }

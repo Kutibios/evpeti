@@ -212,7 +212,7 @@ export class RegisterComponent implements OnInit {
       
       // Test kullanıcı bilgilerini localStorage'a kaydet
       const testUser: User = {
-        id: 'new-user-id',
+        id: Date.now(), // Unique ID için timestamp kullan
         name: this.formData.name,
         email: this.formData.email,
         city: this.formData.city,
