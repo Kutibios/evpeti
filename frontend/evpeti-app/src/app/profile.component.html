@@ -1,9 +1,8 @@
+<app-header [isLoggedIn]="isLoggedIn" [currentUser]="user"></app-header>
+
 <div class="profile-container">
   <div class="profile-card">
     <div class="profile-header">
-      <div class="logo-container">
-        <img src="assets/logo.png" alt="EvPeti Logo" class="logo" (click)="goHome()">
-      </div>
       <h1>👤 Profilim</h1>
       <div class="user-info">
         <h2>{{ user?.name }}</h2>
@@ -98,13 +97,12 @@
               <!-- Ev Fotoğrafları -->
               <div class="listing-images" *ngIf="listing.imageUrls && listing.imageUrls.length > 0">
                 <div class="image-gallery">
-                  <!-- Geçici olarak comment'ledik -->
-                  <!-- <img 
-                    *ngFor="let imageUrl of (listing.imageUrls ? JSON.parse(listing.imageUrls) : []); let i = index" 
+                  <img 
+                    *ngFor="let imageUrl of getImageUrls(listing.imageUrls); let i = index" 
                     [src]="imageUrl" 
                     [alt]="(listing.title || 'İlan') + ' fotoğrafı ' + (i + 1)"
                     class="listing-photo"
-                    (click)="openImageModal(imageUrl, listing.title || 'İlan')"> -->
+                    (click)="openImageModal(imageUrl, listing.title || 'İlan')">
                 </div>
               </div>
               

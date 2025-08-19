@@ -3,18 +3,19 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from './auth.service';
+import { HeaderComponent } from './header.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, HeaderComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./app.css']
 })
 export class HomeComponent implements OnInit {
   isLoggedIn: boolean = false;
   currentUser: User | null = null;
-  showProfileDropdown: boolean = false;
+
 
   constructor(private router: Router, private authService: AuthService) {}
 
@@ -35,31 +36,14 @@ export class HomeComponent implements OnInit {
     if (typeof document !== 'undefined') {
       this.setupDropdowns();
       this.setupSearch();
-      this.setupDropdownCloseListener();
     }
   }
 
-  setupDropdownCloseListener() {
-    if (typeof document !== 'undefined') {
-      document.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-        const profileBtnContainer = document.querySelector('.profile-btn-container');
-        
-        if (profileBtnContainer && !profileBtnContainer.contains(target)) {
-          this.showProfileDropdown = false;
-        }
-      });
-    }
-  }
 
-  toggleProfileDropdown() {
-    this.showProfileDropdown = !this.showProfileDropdown;
-  }
 
   logout() {
     console.log('Logout called from home component');
     this.authService.logout();
-    this.showProfileDropdown = false;
     // Sayfayı yenilemek yerine router ile yönlendir
     this.router.navigate(['/']);
   }
@@ -85,22 +69,7 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  goToProfile() {
-    this.showProfileDropdown = false;
-    this.router.navigate(['/profile']);
-  }
 
-  goToMyBookings() {
-    this.showProfileDropdown = false;
-    // Şimdilik profil sayfasına yönlendir, daha sonra rezervasyon sayfası oluşturulabilir
-    this.router.navigate(['/profile']);
-  }
-
-  goToMessages() {
-    this.showProfileDropdown = false;
-    // Şimdilik profil sayfasına yönlendir, daha sonra mesaj sayfası oluşturulabilir
-    this.router.navigate(['/profile']);
-  }
 
   setupDropdowns() {
     this.setupLocationDropdown();

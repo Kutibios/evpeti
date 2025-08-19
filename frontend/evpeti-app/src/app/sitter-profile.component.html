@@ -21,6 +21,24 @@
       </div>
 
       <div class="form-group">
+        <label for="type">Hayvan Türü *</label>
+        <select 
+          id="type" 
+          name="type" 
+          [(ngModel)]="listingForm.type" 
+          required>
+          <option value="">Hayvan türü seçin</option>
+          <option value="Köpek">Köpek</option>
+          <option value="Kedi">Kedi</option>
+          <option value="Kuş">Kuş</option>
+          <option value="Balık">Balık</option>
+          <option value="Hamster">Hamster</option>
+          <option value="Tavşan">Tavşan</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
         <label for="price">Günlük Ücret (TL) *</label>
         <input 
           type="number" 
@@ -57,6 +75,26 @@
       </div>
 
       <div class="form-group">
+        <label for="startDate">Başlangıç Tarihi *</label>
+        <input 
+          type="date" 
+          id="startDate" 
+          name="startDate" 
+          [(ngModel)]="listingForm.startDate" 
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">Bitiş Tarihi *</label>
+        <input 
+          type="date" 
+          id="endDate" 
+          name="endDate" 
+          [(ngModel)]="listingForm.endDate" 
+          required>
+      </div>
+
+      <div class="form-group">
         <label for="services">Hizmet Türleri</label>
         <textarea 
           id="services" 
@@ -77,8 +115,16 @@
       </div>
 
       <div class="form-group">
-        <label for="imageUploads">Ev Fotoğrafları</label>
-        <div class="image-upload-container">
+        <label for="isAvailable">Müsaitlik Durumu</label>
+        <select id="isAvailable" name="isAvailable" [(ngModel)]="listingForm.isAvailable">
+          <option [ngValue]="true">Aktif (Müsait)</option>
+          <option [ngValue]="false">Pasif (Müsait Değil)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrls">Ev Fotoğrafları (URL)</label>
+        <div class="image-url-container">
           <!-- Mevcut fotoğraflar -->
           <div class="existing-images" *ngIf="listingForm.imageUrls && listingForm.imageUrls.length > 0">
             <div class="image-item" *ngFor="let imageUrl of listingForm.imageUrls; let i = index">
@@ -89,39 +135,25 @@
             </div>
           </div>
           
-          <!-- Yeni fotoğraf yükleme -->
-          <div class="upload-area" *ngIf="selectedFiles.length < 5">
-            <input 
-              type="file" 
-              id="imageUploads" 
-              name="imageUploads" 
-              (change)="onImagesSelected($event)" 
-              accept="image/*"
-              multiple
-              class="file-input">
-            <div class="upload-placeholder">
-              <span class="upload-icon">🏠</span>
-              <p>Fotoğraf seçmek için tıklayın</p>
-              <small>JPG, PNG, GIF (Max: 5MB, En fazla 5 fotoğraf)</small>
-            </div>
-          </div>
-          
-          <!-- Seçilen fotoğraflar preview -->
-          <div class="selected-images" *ngIf="selectedImages.length > 0">
-            <div class="image-item" *ngFor="let image of selectedImages; let i = index">
-              <img [src]="image" alt="Seçilen fotoğraf" class="preview-image">
-              <button type="button" class="remove-image-btn" (click)="removeSelectedImage(i)" title="Fotoğrafı kaldır">
-                ✕
+          <!-- Yeni fotoğraf URL ekleme -->
+          <div class="url-input-area" *ngIf="listingForm.imageUrls.length < 5">
+            <div class="url-input-group">
+              <input 
+                type="url" 
+                id="newImageUrl" 
+                name="newImageUrl" 
+                [(ngModel)]="newImageUrl" 
+                placeholder="Fotoğraf URL'si girin (örn: https://example.com/photo.jpg)"
+                class="url-input">
+              <button 
+                type="button" 
+                class="add-url-btn" 
+                (click)="addImageUrl()" 
+                [disabled]="!newImageUrl || newImageUrl.trim() === ''">
+                Ekle
               </button>
             </div>
-          </div>
-          
-          <!-- Upload progress -->
-          <div class="upload-progress" *ngIf="uploadProgress > 0 && uploadProgress < 100">
-            <div class="progress-bar">
-              <div class="progress-fill" [style.width.%]="uploadProgress"></div>
-            </div>
-            <span class="progress-text">{{ uploadProgress }}%</span>
+            <small class="url-help">En fazla 5 fotoğraf ekleyebilirsiniz</small>
           </div>
         </div>
       </div>

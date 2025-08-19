@@ -19,25 +19,38 @@ export class FileUploadService {
   // Tek fotoğraf yükleme (Pet profilleri için)
   uploadSingleImage(file: File): Observable<string> {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
 
-    return this.http.post<{ imageUrl: string }>(`${this.baseUrl}/upload/single`, formData)
+    return this.http.post<{ success: boolean; url: string }>(`${this.baseUrl}/FileUpload/upload`, formData)
       .pipe(
-        map(response => response.imageUrl)
+        map(response => response.url)
       );
   }
 
   // Çoklu fotoğraf yükleme (Ev ilanları için)
   uploadMultipleImages(files: File[]): Observable<string[]> {
-    const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append(`images`, file);
+    const uploads = files.map(file => this.uploadSingleImage(file));
+    
+    return new Observable(observer => {
+      const results: string[] = [];
+      let completed = 0;
+      
+      uploads.forEach(upload => {
+        upload.subscribe({
+          next: (url) => {
+            results.push(url);
+            completed++;
+            if (completed === files.length) {
+              observer.next(results);
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            observer.error(error);
+          }
+        });
+      });
     });
-
-    return this.http.post<{ imageUrls: string[] }>(`${this.baseUrl}/upload/multiple`, formData)
-      .pipe(
-        map(response => response.imageUrls)
-      );
   }
 
   // Fotoğraf silme

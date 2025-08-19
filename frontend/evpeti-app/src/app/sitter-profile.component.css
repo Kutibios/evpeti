@@ -268,9 +268,13 @@
   }
 }
 
-/* Image Upload Styles */
-.image-upload-container {
+/* Image URL Styles */
+.image-url-container {
   margin-top: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 15px;
+  background: #fafafa;
 }
 
 .existing-images,
@@ -293,6 +297,67 @@
   border-radius: 8px;
   border: 2px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.url-input-area {
+  margin-top: 15px;
+}
+
+.url-input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.url-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.url-input:focus {
+  outline: none;
+  border-color: #00675b;
+  box-shadow: 0 0 0 2px rgba(0, 103, 91, 0.1);
+}
+
+.add-url-btn {
+  padding: 12px 20px;
+  background: #00675b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.add-url-btn:hover:not(:disabled) {
+  background: #004d44;
+  transform: translateY(-1px);
+}
+
+.add-url-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.url-help {
+  color: #666;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+}
+
+.preview-image:hover {
+  transform: scale(1.05);
+  border-color: #00675b;
 }
 
 .remove-image-btn {
@@ -319,77 +384,6 @@
   transform: scale(1.1);
 }
 
-.upload-area {
-  position: relative;
-  border: 2px dashed #ddd;
-  border-radius: 8px;
-  padding: 30px;
-  text-align: center;
-  background: #fafafa;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 15px;
-}
 
-.upload-area:hover {
-  border-color: #007bff;
-  background: #f0f8ff;
-}
 
-.file-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.upload-placeholder {
-  pointer-events: none;
-}
-
-.upload-icon {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 10px;
-  color: #007bff;
-}
-
-.upload-placeholder p {
-  margin: 10px 0 5px 0;
-  color: #333;
-  font-weight: 500;
-}
-
-.upload-placeholder small {
-  color: #666;
-  font-size: 12px;
-}
-
-.upload-progress {
-  margin-top: 15px;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 5px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #007bff, #0056b3);
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  display: block;
-} 
+ 

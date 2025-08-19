@@ -120,11 +120,21 @@ export class DataService {
   }
 
   createListing(listing: Omit<Listing, 'id' | 'createdAt'>): Observable<Listing> {
+    console.log('DataService: createListing çağrıldı');
+    console.log('DataService: Gönderilen data:', listing);
+    console.log('DataService: API URL:', `${this.baseUrl}/listings`);
+    
     return this.http.post<Listing>(`${this.baseUrl}/listings`, listing, { headers: this.getHeaders() })
       .pipe(
-        tap(newListing => {
-          const currentListings = this.listingsSubject.value;
-          this.listingsSubject.next([...currentListings, newListing]);
+        tap({
+          next: (newListing) => {
+            console.log('DataService: Listing başarıyla oluşturuldu:', newListing);
+            const currentListings = this.listingsSubject.value;
+            this.listingsSubject.next([...currentListings, newListing]);
+          },
+          error: (error) => {
+            console.error('DataService: Listing oluşturma hatası:', error);
+          }
         })
       );
   }

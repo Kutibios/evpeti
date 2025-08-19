@@ -57,6 +57,9 @@ if (app.Environment.IsDevelopment())
 // CORS'u en başta etkinleştir
 app.UseCors("AllowAll");
 
+// Static files middleware - wwwroot klasöründen dosya servis et
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

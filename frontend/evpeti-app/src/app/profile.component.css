@@ -1,3 +1,6 @@
+
+
+/* Profile Container Styles */
 .profile-container {
   min-height: 100vh;
   background: white;
@@ -462,6 +465,7 @@
 }
 
 @media (max-width: 768px) {
+  /* Profile responsive */
   .profile-container { padding: 1rem; }
   .profile-card { padding: 1.5rem; }
   .items-grid { grid-template-columns: 1fr; }

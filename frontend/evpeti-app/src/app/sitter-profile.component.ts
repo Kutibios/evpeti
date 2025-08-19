@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from './auth.service';
 import { DataService, Listing } from './services/data.service';
 import { UIService } from './services/ui.service';
-import { FileUploadService } from './services/file-upload.service';
+
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -38,10 +38,8 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
   
-  // Fotoğraf yükleme
-  selectedFiles: File[] = [];
-  selectedImages: string[] = [];
-  uploadProgress = 0;
+  // Fotoğraf URL ekleme
+  newImageUrl = '';
 
   private uiSubscription: Subscription;
 
@@ -50,8 +48,7 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private authService: AuthService,
     private dataService: DataService,
-    private uiService: UIService,
-    private fileUploadService: FileUploadService
+    private uiService: UIService
   ) {
     // UI state'i dinle
     this.uiSubscription = this.uiService.uiState$.subscribe(state => {
@@ -94,7 +91,7 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
               status: listingToEdit.status || 'active',
               experience: listingToEdit.experience || 0,
               services: listingToEdit.services || '',
-              imageUrls: listingToEdit.imageUrls ? JSON.parse(listingToEdit.imageUrls) : [],
+              imageUrls: this.parseImageUrls(listingToEdit.imageUrls || null),
               isActive: listingToEdit.isActive !== undefined ? listingToEdit.isActive : true
             };
           }
@@ -109,77 +106,156 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onSubmit() {
+  onSubmit() {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
 
     // Form validation
-    if (!this.listingForm.title || !this.listingForm.type || !this.listingForm.location || this.listingForm.price <= 0) {
-      this.uiService.setError('Lütfen tüm gerekli alanları doldurun');
+    if (!this.listingForm.title || !this.listingForm.title.trim()) {
+      this.uiService.setError('İlan başlığı gereklidir');
+      return;
+    }
+    
+    if (!this.listingForm.type || !this.listingForm.type.trim()) {
+      this.uiService.setError('Hayvan türü seçimi gereklidir');
+      return;
+    }
+    
+    if (!this.listingForm.location || !this.listingForm.location.trim()) {
+      this.uiService.setError('Konum bilgisi gereklidir');
+      return;
+    }
+    
+    if (this.listingForm.price <= 0) {
+      this.uiService.setError('Günlük ücret 0\'dan büyük olmalıdır');
+      return;
+    }
+    
+    // Tarih validation
+    if (!this.listingForm.startDate) {
+      this.uiService.setError('Başlangıç tarihi gereklidir');
+      return;
+    }
+    
+    if (!this.listingForm.endDate) {
+      this.uiService.setError('Bitiş tarihi gereklidir');
+      return;
+    }
+    
+    if (this.listingForm.startDate >= this.listingForm.endDate) {
+      this.uiService.setError('Bitiş tarihi başlangıç tarihinden sonra olmalıdır');
       return;
     }
 
     this.uiService.setLoading(true);
 
-    try {
-      const user = this.authService.getCurrentUser();
-      if (!user || !user.id) {
-        this.uiService.setError('Kullanıcı bilgileri bulunamadı');
-        this.uiService.setLoading(false);
-        return;
-      }
+    const user = this.authService.getCurrentUser();
+    if (!user || !user.id) {
+      this.uiService.setError('Kullanıcı bilgileri bulunamadı');
+      this.uiService.setLoading(false);
+      return;
+    }
 
-      const listingData = {
+    // Fotoğraf URL'leri kullan
+    let finalImageUrls = [...this.listingForm.imageUrls];
+    
+    console.log('Mevcut fotoğraflar:', finalImageUrls.length);
+
+          const listingData = {
         ...this.listingForm,
         userId: user.id,
+        status: 'active', // Status alanını ekle
         // Backend'de ImageUrls string olarak saklanıyor, JSON string'e çevir
-        imageUrls: this.listingForm.imageUrls.length > 0 ? JSON.stringify(this.listingForm.imageUrls) : null
+        imageUrls: finalImageUrls.length > 0 ? JSON.stringify(finalImageUrls) : null
       };
 
-          if (this.isEditMode && this.editListingId) {
-        // Update existing listing
-        this.dataService.updateListing(this.editListingId, listingData).subscribe({
-          next: (updatedListing) => {
-            console.log('Listing updated successfully:', updatedListing);
-            this.uiService.setSuccess('İlan başarıyla güncellendi!');
-            this.uiService.setLoading(false);
-            setTimeout(() => {
-              this.router.navigate(['/profile']);
-            }, 1500);
-          },
-          error: (error) => {
-            console.error('Error updating listing:', error);
-            this.handleApiError(error);
-          }
-        });
-      } else {
-        // Create new listing
-        this.dataService.createListing(listingData).subscribe({
+          console.log('Listing data hazırlandı:', listingData);
+      console.log('API çağrısı yapılıyor...');
+      console.log('Backend URL:', 'http://localhost:5083/api/listings');
+      console.log('ImageUrls JSON string:', listingData.imageUrls);
+      console.log('ImageUrls parsed:', listingData.imageUrls ? JSON.parse(listingData.imageUrls) : []);
+      
+      // Test için basit bir listing oluştur
+      const testListingData = {
+        userId: user.id,
+        title: 'Test İlan',
+        type: 'Köpek',
+        price: 50,
+        location: 'İstanbul',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 hafta sonra
+        isAvailable: true,
+        status: 'active',
+        experience: 2,
+        services: 'Günlük bakım',
+        description: 'Test açıklama',
+        imageUrls: null,
+        isActive: true
+      };
+      
+      console.log('Test listing data:', testListingData);
+
+    if (this.isEditMode && this.editListingId) {
+      // Update existing listing
+      this.dataService.updateListing(this.editListingId, listingData).subscribe({
+        next: (updatedListing) => {
+          console.log('Listing updated successfully:', updatedListing);
+          this.uiService.setSuccess('İlan başarıyla güncellendi!');
+          this.uiService.setLoading(false);
+          setTimeout(() => {
+            this.router.navigate(['/profile']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error updating listing:', error);
+          this.handleApiError(error);
+        }
+      });
+          } else {
+        // Create new listing - önce test listing ile deneyelim
+        console.log('Test listing ile API çağrısı yapılıyor...');
+        this.dataService.createListing(testListingData).subscribe({
           next: (newListing) => {
-            console.log('Listing created successfully:', newListing);
-            this.uiService.setSuccess('İlan başarıyla oluşturuldu!');
+            console.log('Test listing created successfully:', newListing);
+            this.uiService.setSuccess('Test ilan başarıyla oluşturuldu!');
             this.uiService.setLoading(false);
             setTimeout(() => {
               this.router.navigate(['/profile']);
             }, 1500);
           },
           error: (error) => {
-            console.error('Error creating listing:', error);
-            this.handleApiError(error);
+            console.error('Error creating test listing:', error);
+            console.log('Şimdi gerçek listing ile deneyelim...');
+            
+            // Test başarısız olursa gerçek listing ile dene
+            this.dataService.createListing(listingData).subscribe({
+              next: (newListing) => {
+                console.log('Listing created successfully:', newListing);
+                this.uiService.setSuccess('İlan başarıyla oluşturuldu!');
+                this.uiService.setLoading(false);
+                setTimeout(() => {
+                  this.router.navigate(['/profile']);
+                }, 1500);
+              },
+              error: (error2) => {
+                console.error('Error creating listing:', error2);
+                this.handleApiError(error2);
+              }
+            });
           }
         });
       }
-    } catch (error) {
-      console.error('Error in onSubmit:', error);
-      this.uiService.setError('Fotoğraflar yüklenirken hata oluştu');
-      this.uiService.setLoading(false);
-    }
   }
 
   private handleApiError(error: any) {
     this.uiService.setLoading(false);
+    
+    console.error('handleApiError called with:', error);
+    console.error('Error status:', error.status);
+    console.error('Error message:', error.message);
+    console.error('Error error:', error.error);
     
     if (error.status === 0) {
       this.uiService.setError('Backend sunucusuna bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
@@ -192,62 +268,47 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Fotoğraf yükleme metodları
-  onImagesSelected(event: any) {
-    const files = Array.from(event.target.files);
-    
-    if (files.length + this.selectedFiles.length > 5) {
-      this.uiService.setError('En fazla 5 fotoğraf seçebilirsiniz');
+  // Fotoğraf URL ekleme metodları
+  addImageUrl() {
+    if (!this.newImageUrl || this.newImageUrl.trim() === '') {
+      this.uiService.setError('Lütfen geçerli bir URL girin');
       return;
     }
 
-    files.forEach((file: unknown) => {
-      const fileObj = file as File;
-      // Dosya boyutu kontrolü (5MB)
-      if (fileObj.size > 5 * 1024 * 1024) {
-        this.uiService.setError(`${fileObj.name} dosyası 5MB'dan küçük olmalıdır`);
-        return;
-      }
+    if (this.listingForm.imageUrls.length >= 5) {
+      this.uiService.setError('En fazla 5 fotoğraf ekleyebilirsiniz');
+      return;
+    }
 
-      // Dosya tipi kontrolü
-      if (!fileObj.type.startsWith('image/')) {
-        this.uiService.setError(`${fileObj.name} geçerli bir resim dosyası değil`);
-        return;
-      }
+    // URL formatını kontrol et
+    try {
+      new URL(this.newImageUrl);
+    } catch {
+      this.uiService.setError('Geçerli bir URL formatı girin');
+      return;
+    }
 
-      this.selectedFiles.push(fileObj);
-      
-      // Preview için FileReader kullan
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.selectedImages.push(e.target.result);
-      };
-      reader.readAsDataURL(fileObj);
-    });
-  }
-
-  removeSelectedImage(index: number) {
-    this.selectedImages.splice(index, 1);
-    this.selectedFiles.splice(index, 1);
+    this.listingForm.imageUrls.push(this.newImageUrl.trim());
+    this.newImageUrl = ''; // Input'u temizle
+    this.uiService.setSuccess('Fotoğraf URL\'si eklendi');
   }
 
   removeExistingImage(index: number) {
     if (this.listingForm.imageUrls && this.listingForm.imageUrls.length > index) {
       this.listingForm.imageUrls.splice(index, 1);
+      this.uiService.setSuccess('Fotoğraf kaldırıldı');
     }
   }
 
-  private uploadImages(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      if (this.selectedFiles.length === 0) {
-        resolve([]);
-        return;
-      }
-
-      // Geçici olarak fotoğraf yükleme devre dışı
-      // Backend'de upload endpoint'leri henüz hazır değil
-      reject(new Error('Fotoğraf yükleme özelliği henüz aktif değil. Şu an için manuel URL girişi yapabilirsiniz.'));
-    });
+  // ImageUrls'i parse etme methodu
+  private parseImageUrls(imageUrls: string | null): string[] {
+    if (!imageUrls) return [];
+    try {
+      return JSON.parse(imageUrls);
+    } catch (error) {
+      console.error('Error parsing imageUrls:', error);
+      return [];
+    }
   }
 
   onCancel() {

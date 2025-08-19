@@ -4,12 +4,13 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { DataService, Pet, Listing } from './services/data.service';
 import { UIService } from './services/ui.service';
+import { HeaderComponent } from './header.component';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeaderComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -17,6 +18,9 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   user: any = null;
   pets: Pet[] = [];
   listings: Listing[] = [];
+  
+  // Header properties
+  isLoggedIn = false;
   
   // UI state subscriptions
   private uiSubscription: Subscription;
@@ -77,6 +81,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.user = this.authService.getCurrentUser();
+    this.isLoggedIn = true;
     console.log('Current user loaded:', this.user);
     
     if (!this.user || !this.user.id) {
@@ -132,6 +137,9 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (listings) => {
         console.log('DL: Listings loaded successfully:', listings);
         console.log('DL: Listings count:', listings?.length || 0);
+        this.listings = listings || []; // Listings'i component'e ata
+        console.log('DL: Listings assigned to component:', this.listings);
+        console.log('DL: First listing imageUrls:', this.listings[0]?.imageUrls);
         this.uiService.setLoading(false);
       },
       error: (error) => {
@@ -145,6 +153,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
   }
+
+
 
   goHome() {
     this.router.navigate(['/']);
@@ -263,5 +273,16 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   openImageModal(imageUrl: string, title: string) {
     // Basit bir modal açma (daha gelişmiş modal için ayrı component yapılabilir)
     window.open(imageUrl, '_blank');
+  }
+
+  // ImageUrls'i parse etme methodu
+  getImageUrls(imageUrls: string | null): string[] {
+    if (!imageUrls) return [];
+    try {
+      return JSON.parse(imageUrls);
+    } catch (error) {
+      console.error('Error parsing imageUrls:', error);
+      return [];
+    }
   }
 } 
