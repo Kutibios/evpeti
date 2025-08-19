@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from './auth.service';
-import { HttpClient } from '@angular/common/http';
+import { DataService, Pet } from './services/data.service';
+import { UIService } from './services/ui.service';
+import { FileUploadService } from './services/file-upload.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-pet-profile',
@@ -12,109 +15,226 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './pet-profile.component.html',
   styleUrls: ['./pet-profile.component.css']
 })
-export class PetProfileComponent {
-  pet = {
+export class PetProfileComponent implements OnInit, OnDestroy {
+  petForm = {
     name: '',
-    species: '',
+    type: '',
     breed: '',
     age: 0,
     gender: '',
+    color: '',
     weight: 0,
     healthNotes: '',
-    photo: '',
-    userId: 0
+    description: '',
+    photo: ''
   };
 
+  isEditMode = false;
+  editPetId: number | null = null;
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
+  
+  // Fotoğraf yükleme
+  selectedImage: string | null = null;
+  selectedFile: File | null = null;
+  uploadProgress = 0;
+
+  private uiSubscription: Subscription;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService,
-    private http: HttpClient
-  ) {}
+    private dataService: DataService,
+    private uiService: UIService,
+    private fileUploadService: FileUploadService
+  ) {
+    // UI state'i dinle
+    this.uiSubscription = this.uiService.uiState$.subscribe(state => {
+      this.isLoading = state.isLoading;
+      this.errorMessage = state.errorMessage;
+      this.successMessage = state.successMessage;
+    });
+  }
 
-  onSubmit() {
+  ngOnInit() {
+    // Query parameter'dan edit mode'u kontrol et
+    this.route.queryParams.subscribe(params => {
+      if (params['edit']) {
+        this.isEditMode = true;
+        this.editPetId = +params['edit'];
+        this.loadPetForEdit(this.editPetId);
+      }
+    });
+  }
+
+  loadPetForEdit(petId: number) {
+    this.uiService.setLoading(true);
+    
+    // Mevcut pet'leri yükle ve düzenlenecek olanı bul
+    const user = this.authService.getCurrentUser();
+    if (user && user.id) {
+      this.dataService.getUserPets(user.id).subscribe({
+        next: (pets) => {
+          const petToEdit = pets.find(p => p.id === petId);
+          if (petToEdit) {
+            this.petForm = {
+              name: petToEdit.name,
+              type: petToEdit.type,
+              breed: petToEdit.breed,
+              age: petToEdit.age,
+              gender: petToEdit.gender || '',
+              color: petToEdit.color || '',
+              weight: petToEdit.weight || 0,
+              healthNotes: petToEdit.healthNotes || '',
+              description: petToEdit.description || '',
+              photo: petToEdit.photo || ''
+            };
+          }
+          this.uiService.setLoading(false);
+        },
+        error: (error) => {
+          console.error('Error loading pet for edit:', error);
+          this.uiService.setError('Pet bilgileri yüklenirken hata oluştu');
+          this.uiService.setLoading(false);
+        }
+      });
+    }
+  }
+
+  async onSubmit() {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    // Kullanıcı ID'sini al
-    const user = this.authService.getCurrentUser();
-    console.log('Current user:', user);
-    
-    if (!user || !user.id) {
-      this.errorMessage = 'Kullanıcı bilgileri bulunamadı';
-      this.isLoading = false;
+    // Form validation
+    if (!this.petForm.name || !this.petForm.type || !this.petForm.breed || this.petForm.age <= 0) {
+      this.uiService.setError('Lütfen tüm gerekli alanları doldurun');
       return;
     }
 
-    // Pet verilerini hazırla - sadece backend'de beklenen alanları gönder
-    const petData = {
-      name: this.pet.name,
-      species: this.pet.species,
-      breed: this.pet.breed,
-      age: this.pet.age,
-      gender: this.pet.gender,
-      weight: this.pet.weight,
-      healthNotes: this.pet.healthNotes,
-      photo: this.pet.photo,
-      userId: user.id
-    };
+    this.uiService.setLoading(true);
 
-    console.log('Sending pet data:', petData);
-    console.log('API URL: http://localhost:5083/api/pets');
+    try {
+      const user = this.authService.getCurrentUser();
+      if (!user || !user.id) {
+        this.uiService.setError('Kullanıcı bilgileri bulunılamadı');
+        this.uiService.setLoading(false);
+        return;
+      }
 
-    // Timeout ekle (10 saniye)
-    const timeout = setTimeout(() => {
-      this.isLoading = false;
-      this.errorMessage = 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.';
-      console.error('Request timeout');
-    }, 10000);
+      const petData = {
+        ...this.petForm,
+        userId: user.id
+      };
+      
+      console.log('Pet data to be saved:', petData);
+      console.log('Photo URL:', this.petForm.photo);
 
-    // API çağrısı yap
-    this.http.post('http://localhost:5083/api/pets', petData)
-      .subscribe({
-        next: (response: any) => {
-          clearTimeout(timeout);
-          console.log('API response:', response);
-          this.isLoading = false;
-          alert('Pet profili başarıyla oluşturuldu!');
-          this.router.navigate(['/']);
-        },
-        error: (error) => {
-          clearTimeout(timeout);
-          console.error('API error details:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          console.error('Error error:', error.error);
-          
-          this.isLoading = false;
-          
-          if (error.status === 0) {
-            this.errorMessage = 'Backend sunucusuna bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.';
-          } else if (error.status === 400) {
-            this.errorMessage = 'Geçersiz veri: ' + (error.error || 'Bilinmeyen hata');
-          } else if (error.status === 500) {
-            this.errorMessage = 'Sunucu hatası: ' + (error.error || 'Bilinmeyen hata');
-          } else {
-            this.errorMessage = 'Pet profili oluşturulurken hata oluştu: ' + (error.error || error.message || 'Bilinmeyen hata');
+          if (this.isEditMode && this.editPetId) {
+        // Update existing pet
+        this.dataService.updatePet(this.editPetId, petData).subscribe({
+          next: (updatedPet) => {
+            console.log('Pet updated successfully:', updatedPet);
+            this.uiService.setSuccess('Pet profili başarıyla güncellendi!');
+            this.uiService.setLoading(false);
+            setTimeout(() => {
+              this.router.navigate(['/profile']);
+            }, 1500);
+          },
+          error: (error) => {
+            console.error('Error updating pet:', error);
+            this.handleApiError(error);
           }
-          
-          console.error('Pet oluşturma hatası:', error);
-        }
-      });
+        });
+      } else {
+        // Create new pet
+        this.dataService.createPet(petData).subscribe({
+          next: (newPet) => {
+            console.log('Pet created successfully:', newPet);
+            this.uiService.setSuccess('Pet profili başarıyla oluşturuldu!');
+            this.uiService.setLoading(false);
+            setTimeout(() => {
+              this.router.navigate(['/profile']);
+            }, 1500);
+          },
+          error: (error) => {
+            console.error('Error creating pet:', error);
+            this.handleApiError(error);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error in onSubmit:', error);
+      this.uiService.setError('Fotoğraf yüklenirken hata oluştu');
+      this.uiService.setLoading(false);
+    }
   }
 
+  private handleApiError(error: any) {
+    this.uiService.setLoading(false);
+    
+    if (error.status === 0) {
+      this.uiService.setError('Backend sunucusuna bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
+    } else if (error.status === 400) {
+      this.uiService.setError('Geçersiz veri: ' + (error.error || 'Bilinmeyen hata'));
+    } else if (error.status === 500) {
+      this.uiService.setError('Sunucu hatası: ' + (error.error || 'Bilinmeyen hata'));
+    } else {
+      this.uiService.setError('Pet profili işlemi sırasında hata oluştu: ' + (error.error || error.message || 'Bilinmeyen hata'));
+    }
+  }
+
+  // Fotoğraf yükleme metodları
+  // Geçici olarak devre dışı - backend upload endpoint'i hazır olmadığı için
+  // onImageSelected(event: any) {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     // Dosya boyutu kontrolü (5MB)
+  //     if (file.size > 5 * 1024 * 1024) {
+  //       this.uiService.setError('Dosya boyutu 5MB\'dan küçük olmalıdır');
+  //       return;
+  //     }
+
+  //     // Dosya tipi kontrolü
+  //     if (!file.type.startsWith('image/')) {
+  //       this.uiService.setError('Lütfen geçerli bir resim dosyası seçin');
+  //       return;
+  //     }
+
+  //     this.selectedFile = file;
+      
+  //     // Preview için FileReader kullan
+  //     const reader = new FileReader();
+  //     reader.onload = (e: any) => {
+  //       this.selectedImage = e.target.result;
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // }
+
+  // removeImage() {
+  //   this.selectedImage = null;
+  //   this.selectedFile = null;
+  //   this.petForm.imageUrl = '';
+  //   this.uploadProgress = 0;
+  // }
+
+  // uploadImage metodu kaldırıldı - artık kullanılmıyor
+
   onCancel() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/profile']);
   }
 
   goHome() {
     this.router.navigate(['/']);
+  }
+
+  ngOnDestroy() {
+    if (this.uiSubscription) {
+      this.uiSubscription.unsubscribe();
+    }
   }
 } 

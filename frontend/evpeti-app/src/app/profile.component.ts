@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { DataService, Pet, Listing } from './services/data.service';
+import { UIService } from './services/ui.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -11,18 +13,59 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   user: any = null;
-  pets: any[] = [];
-  listings: any[] = [];
-  isLoading = true;
+  pets: Pet[] = [];
+  listings: Listing[] = [];
+  
+  // UI state subscriptions
+  private uiSubscription: Subscription;
+  isLoading = false;
   errorMessage = '';
+  successMessage = '';
+  showConfirmDialog = false;
+  confirmDialogData: any = null;
 
   constructor(
     private router: Router,
     private authService: AuthService,
-    private http: HttpClient
-  ) {}
+    private dataService: DataService,
+    private uiService: UIService
+  ) {
+    // UI state'i dinle
+    this.uiSubscription = this.uiService.uiState$.subscribe(state => {
+      this.isLoading = state.isLoading;
+      this.errorMessage = state.errorMessage;
+      this.successMessage = state.successMessage;
+      this.showConfirmDialog = state.showConfirmDialog;
+      this.confirmDialogData = state.confirmDialogData;
+    });
+
+    // DataService state'ini dinle - DL pattern
+    this.dataService.pets$.subscribe({
+      next: (pets) => {
+        console.log('Pets subscription triggered:', pets);
+        this.pets = pets || [];
+        console.log('Pets updated from DataService:', this.pets);
+      },
+      error: (error) => {
+        console.error('Pets subscription error:', error);
+        this.pets = [];
+      }
+    });
+
+    this.dataService.listings$.subscribe({
+      next: (listings) => {
+        console.log('Listings subscription triggered:', listings);
+        this.listings = listings || [];
+        console.log('Listings updated from DataService:', this.listings);
+      },
+      error: (error) => {
+        console.error('Listings subscription error:', error);
+        this.listings = [];
+      }
+    });
+  }
 
   ngOnInit() {
     console.log('ProfileComponent ngOnInit started');
@@ -38,109 +81,69 @@ export class ProfileComponent implements OnInit {
     
     if (!this.user || !this.user.id) {
       console.error('User or user ID is missing:', this.user);
-      this.errorMessage = 'Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.';
-      this.isLoading = false;
+      this.uiService.setError('Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.');
       return;
     }
     
     console.log('User ID:', this.user.id);
-    // Doğrudan verileri yükle
+  }
+
+  ngAfterViewInit() {
+    // View init olduktan sonra veri yükle
+    console.log('ngAfterViewInit triggered');
     this.loadUserData();
   }
 
+  ngOnDestroy() {
+    if (this.uiSubscription) {
+      this.uiSubscription.unsubscribe();
+    }
+    // DataService subscription'larını temizle ama state'i sıfırlama
+    // this.dataService.clearState(); // Bu satırı kaldırdık
+  }
+
   loadUserData() {
-    console.log('Loading user data - Starting to load user data');
-    this.isLoading = true;
-    this.errorMessage = '';
-
     console.log('Loading user data for user ID:', this.user.id);
+    this.uiService.setLoading(true);
 
-    // HTTP headers ekle
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+    // DL Pattern: Data Layer'dan veri çek
+    console.log('=== DL Pattern: Loading Data ===');
+    
+    // Pets'i yükle
+    this.dataService.getUserPets(this.user.id).subscribe({
+      next: (pets) => {
+        console.log('DL: Pets loaded successfully:', pets);
+        console.log('DL: Pets count:', pets?.length || 0);
+        this.uiService.setLoading(false);
+      },
+      error: (error) => {
+        console.error('DL: Error loading pets:', error);
+        this.uiService.setLoading(false);
+        if (error.status === 0) {
+          this.uiService.setError('Backend sunucusu çalışmıyor. Lütfen backend\'i başlatın.');
+        } else {
+          this.uiService.setError('Pet profilleri yüklenirken hata oluştu: ' + error.message);
+        }
+      }
     });
 
-    // Timeout ile API çağrısı
-    const timeout = 10000; // 10 saniye
-
-    // Her iki API çağrısını da tamamladığımızda loading'i false yap
-    let petsLoaded = false;
-    let listingsLoaded = false;
-
-    const checkAllLoaded = () => {
-      if (petsLoaded && listingsLoaded) {
-        this.isLoading = false;
-        console.log('All data loaded successfully');
-      }
-    };
-
-    // Kullanıcının pet'lerini yükle
-    console.log('Making API call to:', `http://localhost:5083/api/pets/user/${this.user.id}`);
-    this.http.get(`http://localhost:5083/api/pets/user/${this.user.id}`, { headers })
-      .subscribe({
-        next: (response: any) => {
-          console.log('User pets from API:', response);
-          this.pets = response || [];
-          console.log('User pets loaded:', this.pets);
-          petsLoaded = true;
-          checkAllLoaded();
-        },
-        error: (error) => {
-          console.error('Error loading pets:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          if (error.status === 0) {
-            this.errorMessage = 'Backend sunucusu çalışmıyor. Lütfen backend\'i başlatın.';
-          } else {
-            this.errorMessage = 'Pet profilleri yüklenirken hata oluştu: ' + error.message;
-          }
-          this.pets = [];
-          petsLoaded = true;
-          checkAllLoaded();
-        },
-        complete: () => {
-          console.log('Pets loading completed');
+    // Listings'i yükle
+    this.dataService.getUserListings(this.user.id).subscribe({
+      next: (listings) => {
+        console.log('DL: Listings loaded successfully:', listings);
+        console.log('DL: Listings count:', listings?.length || 0);
+        this.uiService.setLoading(false);
+      },
+      error: (error) => {
+        console.error('DL: Error loading listings:', error);
+        this.uiService.setLoading(false);
+        if (error.status === 0) {
+          this.uiService.setError('Backend sunucusu çalışmıyor. Lütfen backend\'i başlatın.');
+        } else {
+          this.uiService.setError('İlanlar yüklenirken hata oluştu: ' + error.message);
         }
-      });
-
-    // Kullanıcının listing'lerini yükle
-    console.log('Making API call to:', `http://localhost:5083/api/listings/user/${this.user.id}`);
-    this.http.get(`http://localhost:5083/api/listings/user/${this.user.id}`, { headers })
-      .subscribe({
-        next: (response: any) => {
-          console.log('User listings from API:', response);
-          this.listings = response || [];
-          console.log('User listings loaded:', this.listings);
-          listingsLoaded = true;
-          checkAllLoaded();
-        },
-        error: (error) => {
-          console.error('Error loading listings:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          if (error.status === 0) {
-            this.errorMessage = 'Backend sunucusu çalışmıyor. Lütfen backend\'i başlatın.';
-          } else {
-            this.errorMessage = 'İlanlar yüklenirken hata oluştu: ' + error.message;
-          }
-          this.listings = [];
-          listingsLoaded = true;
-          checkAllLoaded();
-        },
-        complete: () => {
-          console.log('Listings loading completed');
-        }
-      });
-
-    // Timeout kontrolü
-    setTimeout(() => {
-      if (this.isLoading) {
-        this.isLoading = false;
-        this.errorMessage = 'Veriler yüklenirken zaman aşımı oluştu. Lütfen tekrar deneyin.';
-        console.log('Timeout occurred');
       }
-    }, timeout);
+    });
   }
 
   goHome() {
@@ -156,6 +159,8 @@ export class ProfileComponent implements OnInit {
   }
 
   logout() {
+    // this.dataService.clearState(); // Bu satırı kaldırdık
+    this.uiService.resetState();
     this.authService.logout();
     this.router.navigate(['/']);
   }
@@ -166,79 +171,97 @@ export class ProfileComponent implements OnInit {
     console.log('User ID:', this.user?.id);
     console.log('Is logged in:', this.authService.isLoggedIn());
     console.log('Pets count:', this.pets.length);
+          console.log('Pets details:', this.pets.map(pet => ({
+        id: pet.id,
+        name: pet.name,
+        photo: pet.photo,
+        hasPhoto: !!pet.photo
+      })));
     console.log('Listings count:', this.listings.length);
     console.log('Is loading:', this.isLoading);
     console.log('Error message:', this.errorMessage);
     console.log('==================');
-    
-    // API endpoint'lerini test et
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
-    
-    console.log('Testing pets API...');
-    this.http.get(`http://localhost:5083/api/pets/user/${this.user.id}`, { headers })
-      .subscribe({
-        next: (response) => console.log('Pets API response:', response),
-        error: (error) => console.error('Pets API error:', error)
-      });
-      
-    console.log('Testing listings API...');
-    this.http.get(`http://localhost:5083/api/listings/user/${this.user.id}`, { headers })
-      .subscribe({
-        next: (response) => console.log('Listings API response:', response),
-        error: (error) => console.error('Listings API error:', error)
-      });
   }
 
-  editPet(pet: any) {
+  editPet(pet: Pet) {
     console.log('Edit pet:', pet);
-    // Pet düzenleme sayfasına yönlendir
     this.router.navigate(['/pet-profile'], { queryParams: { edit: pet.id } });
   }
 
   deletePet(petId: number) {
-    if (confirm('Bu pet profilini silmek istediğinizden emin misiniz?')) {
-      console.log('Delete pet:', petId);
-      // API'den silme işlemi
-      this.http.delete(`http://localhost:5083/api/pets/${petId}`)
-        .subscribe({
+    this.uiService.showConfirmDialog(
+      'Pet Profili Sil',
+      'Bu pet profilini silmek istediğinizden emin misiniz?',
+      'Evet, Sil',
+      'İptal',
+      () => {
+        console.log('Delete pet:', petId);
+        this.uiService.setLoading(true);
+        
+        this.dataService.deletePet(petId).subscribe({
           next: () => {
-            this.pets = this.pets.filter(pet => pet.id !== petId);
-            console.log('Pet deleted successfully');
+            this.uiService.setSuccess('Pet profili başarıyla silindi');
+            this.uiService.setLoading(false);
           },
           error: (error) => {
             console.error('Error deleting pet:', error);
-            // Test verilerinden sil
-            this.pets = this.pets.filter(pet => pet.id !== petId);
+            this.uiService.setError('Pet profili silinirken hata oluştu: ' + error.message);
+            this.uiService.setLoading(false);
           }
         });
-    }
+      }
+    );
   }
 
-  editListing(listing: any) {
+  editListing(listing: Listing) {
     console.log('Edit listing:', listing);
-    // Listing düzenleme sayfasına yönlendir
     this.router.navigate(['/sitter-profile'], { queryParams: { edit: listing.id } });
   }
 
   deleteListing(listingId: number) {
-    if (confirm('Bu ilanı silmek istediğinizden emin misiniz?')) {
-      console.log('Delete listing:', listingId);
-      // API'den silme işlemi
-      this.http.delete(`http://localhost:5083/api/listings/${listingId}`)
-        .subscribe({
+    this.uiService.showConfirmDialog(
+      'İlan Sil',
+      'Bu ilanı silmek istediğinizden emin misiniz?',
+      'Evet, Sil',
+      'İptal',
+      () => {
+        console.log('Delete listing:', listingId);
+        this.uiService.setLoading(true);
+        
+        this.dataService.deleteListing(listingId).subscribe({
           next: () => {
-            this.listings = this.listings.filter(listing => listing.id !== listingId);
-            console.log('Listing deleted successfully');
+            this.uiService.setSuccess('İlan başarıyla silindi');
+            this.uiService.setLoading(false);
           },
           error: (error) => {
             console.error('Error deleting listing:', error);
-            // Test verilerinden sil
-            this.listings = this.listings.filter(listing => listing.id !== listingId);
+            this.uiService.setError('İlan silinirken hata oluştu: ' + error.message);
+            this.uiService.setLoading(false);
           }
         });
+      }
+    );
+  }
+
+  // Confirm dialog methods
+  onConfirmDialogConfirm() {
+    if (this.confirmDialogData?.onConfirm) {
+      this.confirmDialogData.onConfirm();
     }
+    this.uiService.hideConfirmDialog();
+  }
+
+  onConfirmDialogCancel() {
+    this.uiService.hideConfirmDialog();
+  }
+
+  onCloseSuccess() {
+    this.uiService.clearSuccess();
+  }
+
+  // Fotoğraf modal'ı açma
+  openImageModal(imageUrl: string, title: string) {
+    // Basit bir modal açma (daha gelişmiş modal için ayrı component yapılabilir)
+    window.open(imageUrl, '_blank');
   }
 } 

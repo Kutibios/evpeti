@@ -4,8 +4,8 @@
       <div class="logo-container">
         <img src="assets/logo.png" alt="EvPeti Logo" class="logo" (click)="goHome()">
       </div>
-      <h1>🐕 Pet Profili Oluştur</h1>
-      <p>Evcil hayvanınızın bilgilerini girin</p>
+      <h1>{{ isEditMode ? '🐕 Pet Profili Düzenle' : '🐕 Pet Profili Oluştur' }}</h1>
+      <p>{{ isEditMode ? 'Evcil hayvanınızın bilgilerini güncelleyin' : 'Evcil hayvanınızın bilgilerini girin' }}</p>
     </div>
 
     <form class="pet-profile-form" (ngSubmit)="onSubmit()">
@@ -15,14 +15,14 @@
           type="text" 
           id="name" 
           name="name" 
-          [(ngModel)]="pet.name" 
+          [(ngModel)]="petForm.name" 
           required 
           placeholder="Pet adını girin">
       </div>
 
       <div class="form-group">
-        <label for="species">Tür *</label>
-        <select id="species" name="species" [(ngModel)]="pet.species" required>
+        <label for="type">Tür *</label>
+        <select id="type" name="type" [(ngModel)]="petForm.type" required>
           <option value="">Tür seçin</option>
           <option value="Köpek">Köpek</option>
           <option value="Kedi">Kedi</option>
@@ -34,12 +34,13 @@
       </div>
 
       <div class="form-group">
-        <label for="breed">Irk</label>
+        <label for="breed">Irk *</label>
         <input 
           type="text" 
           id="breed" 
           name="breed" 
-          [(ngModel)]="pet.breed" 
+          [(ngModel)]="petForm.breed" 
+          required
           placeholder="Irk bilgisi">
       </div>
 
@@ -50,16 +51,16 @@
             type="number" 
             id="age" 
             name="age" 
-            [(ngModel)]="pet.age" 
+            [(ngModel)]="petForm.age" 
             required 
             min="0" 
             max="30" 
             placeholder="Yaş">
         </div>
-
+        
         <div class="form-group">
-          <label for="gender">Cinsiyet *</label>
-          <select id="gender" name="gender" [(ngModel)]="pet.gender" required>
+          <label for="gender">Cinsiyet</label>
+          <select id="gender" name="gender" [(ngModel)]="petForm.gender">
             <option value="">Cinsiyet seçin</option>
             <option value="Erkek">Erkek</option>
             <option value="Dişi">Dişi</option>
@@ -67,16 +68,28 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="weight">Kilo (kg)</label>
-        <input 
-          type="number" 
-          id="weight" 
-          name="weight" 
-          [(ngModel)]="pet.weight" 
-          step="0.1" 
-          min="0" 
-          placeholder="Kilo">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="color">Renk</label>
+          <input 
+            type="text" 
+            id="color" 
+            name="color" 
+            [(ngModel)]="petForm.color" 
+            placeholder="Pet rengi">
+        </div>
+        
+        <div class="form-group">
+          <label for="weight">Kilo (kg)</label>
+          <input 
+            type="number" 
+            id="weight" 
+            name="weight" 
+            [(ngModel)]="petForm.weight" 
+            step="0.1" 
+            min="0" 
+            placeholder="Kilo">
+        </div>
       </div>
 
       <div class="form-group">
@@ -84,23 +97,48 @@
         <textarea 
           id="healthNotes" 
           name="healthNotes" 
-          [(ngModel)]="pet.healthNotes" 
-          rows="3" 
-          placeholder="Özel sağlık durumu, alerjiler, ilaçlar vb."></textarea>
+          [(ngModel)]="petForm.healthNotes" 
+          rows="3"
+          placeholder="Pet hakkında sağlık notları, özellikler vb.">
+        </textarea>
       </div>
 
       <div class="form-group">
-        <label for="photo">Fotoğraf URL</label>
+        <label for="description">Açıklama</label>
+        <textarea 
+          id="description" 
+          name="description" 
+          [(ngModel)]="petForm.description" 
+          rows="3"
+          placeholder="Pet hakkında ek bilgiler">
+        </textarea>
+      </div>
+
+
+
+      <div class="form-group">
+        <label for="photo">Pet Fotoğrafı URL'si</label>
         <input 
           type="url" 
           id="photo" 
           name="photo" 
-          [(ngModel)]="pet.photo" 
-          placeholder="Fotoğraf URL'si">
+          [(ngModel)]="petForm.photo" 
+          placeholder="Pet fotoğrafının URL'sini girin">
+        <small class="form-note">
+          <strong>Not:</strong> Fotoğraf yükleme özelliği henüz aktif değil. Lütfen geçerli bir fotoğraf URL'si girin.
+        </small>
       </div>
 
+      <!-- Error Message -->
       <div class="error-message" *ngIf="errorMessage">
-        {{ errorMessage }}
+        <div class="error-icon">⚠️</div>
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Success Message -->
+      <div class="success-message" *ngIf="successMessage">
+        <div class="success-icon">✅</div>
+        <p>{{ successMessage }}</p>
       </div>
 
       <div class="form-buttons">
@@ -108,8 +146,8 @@
           İptal
         </button>
         <button type="submit" class="submit-btn" [disabled]="isLoading">
-          <span *ngIf="!isLoading">Pet Profili Oluştur</span>
-          <span *ngIf="isLoading" class="loading-text">Oluşturuluyor...</span>
+          <span *ngIf="!isLoading">{{ isEditMode ? 'Güncelle' : 'Pet Profili Oluştur' }}</span>
+          <span *ngIf="isLoading" class="loading-text">{{ isEditMode ? 'Güncelleniyor...' : 'Oluşturuluyor...' }}</span>
         </button>
       </div>
     </form>

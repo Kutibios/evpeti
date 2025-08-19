@@ -13,6 +13,9 @@
         <span *ngIf="!isLoading">🔄 Yenile</span>
         <span *ngIf="isLoading">⏳ Yenileniyor...</span>
       </button>
+      <button class="debug-btn" (click)="debugUserInfo()" title="Debug">
+        🐛 Debug
+      </button>
     </div>
 
     <div class="profile-content">
@@ -30,7 +33,7 @@
             <div class="item-header">
               <h4>{{ pet.name }}</h4>
               <div class="item-actions">
-                <span class="species">{{ pet.species }}</span>
+                <span class="species">{{ pet.type }}</span>
                 <div class="action-buttons">
                   <button class="edit-btn" (click)="editPet(pet)" title="Düzenle">
                     ✏️
@@ -42,11 +45,18 @@
               </div>
             </div>
             <div class="item-details">
+                      <!-- Pet Fotoğrafı -->
+        <div class="pet-image" *ngIf="pet.photo">
+          <img [src]="pet.photo" [alt]="pet.name + ' fotoğrafı'" class="pet-photo">
+        </div>
+              
+                              <p><strong>Tür:</strong> {{ pet.type }}</p>
               <p><strong>Cins:</strong> {{ pet.breed }}</p>
               <p><strong>Yaş:</strong> {{ pet.age }} yaşında</p>
-              <p><strong>Cinsiyet:</strong> {{ pet.gender }}</p>
-              <p><strong>Kilo:</strong> {{ pet.weight }} kg</p>
-              <p *ngIf="pet.healthNotes"><strong>Sağlık Notları:</strong> {{ pet.healthNotes }}</p>
+              <p *ngIf="pet.gender"><strong>Cinsiyet:</strong> {{ pet.gender }}</p>
+              <p *ngIf="pet.weight"><strong>Kilo:</strong> {{ pet.weight }} kg</p>
+              <p *ngIf="pet.color"><strong>Renk:</strong> {{ pet.color }}</p>
+              <p *ngIf="pet.description"><strong>Açıklama:</strong> {{ pet.description }}</p>
             </div>
           </div>
           
@@ -71,7 +81,7 @@
         <div class="items-grid" *ngIf="!isLoading">
           <div class="item-card" *ngFor="let listing of listings">
             <div class="item-header">
-              <h4>{{ listing.type }}</h4>
+              <h4>{{ listing.title || 'Başlıksız İlan' }}</h4>
               <div class="item-actions">
                 <span class="price">{{ listing.price }} ₺</span>
                 <div class="action-buttons">
@@ -85,15 +95,30 @@
               </div>
             </div>
             <div class="item-details">
+              <!-- Ev Fotoğrafları -->
+              <div class="listing-images" *ngIf="listing.imageUrls && listing.imageUrls.length > 0">
+                <div class="image-gallery">
+                  <!-- Geçici olarak comment'ledik -->
+                  <!-- <img 
+                    *ngFor="let imageUrl of (listing.imageUrls ? JSON.parse(listing.imageUrls) : []); let i = index" 
+                    [src]="imageUrl" 
+                    [alt]="(listing.title || 'İlan') + ' fotoğrafı ' + (i + 1)"
+                    class="listing-photo"
+                    (click)="openImageModal(imageUrl, listing.title || 'İlan')"> -->
+                </div>
+              </div>
+              
               <p><strong>Konum:</strong> {{ listing.location }}</p>
-              <p><strong>Başlangıç:</strong> {{ listing.startDate | date:'dd/MM/yyyy' }}</p>
-              <p><strong>Bitiş:</strong> {{ listing.endDate | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Fiyat:</strong> {{ listing.price }} ₺</p>
+              <p *ngIf="listing.experience"><strong>Deneyim:</strong> {{ listing.experience }} yıl</p>
+              <p *ngIf="listing.services && listing.services.trim()"><strong>Hizmetler:</strong> {{ listing.services }}</p>
+              <p><strong>Oluşturulma:</strong> {{ listing.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
               <p><strong>Durum:</strong> 
-                <span class="status" [class.active]="listing.isAvailable">
-                  {{ listing.isAvailable ? 'Aktif' : 'Pasif' }}
+                <span class="status" [class.active]="listing.isActive">
+                  {{ listing.isActive ? 'Aktif' : 'Pasif' }}
                 </span>
               </p>
-              <p *ngIf="listing.description"><strong>Açıklama:</strong> {{ listing.description }}</p>
+              <p *ngIf="listing.description && listing.description.trim()"><strong>Açıklama:</strong> {{ listing.description }}</p>
             </div>
           </div>
           
@@ -112,6 +137,13 @@
         <p>Veriler yükleniyor...</p>
       </div>
 
+      <!-- Success Message -->
+      <div class="success-message" *ngIf="successMessage">
+        <div class="success-icon">✅</div>
+        <p>{{ successMessage }}</p>
+        <button class="close-btn" (click)="onCloseSuccess()">✕</button>
+      </div>
+
       <!-- Error State -->
       <div class="error-state" *ngIf="errorMessage">
         <div class="error-icon">⚠️</div>
@@ -120,6 +152,26 @@
         <div class="error-actions">
           <button class="retry-btn" (click)="loadUserData()">Tekrar Dene</button>
           <button class="home-btn" (click)="goHome()">Ana Sayfaya Dön</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div class="confirm-dialog-overlay" *ngIf="showConfirmDialog" (click)="onConfirmDialogCancel()">
+      <div class="confirm-dialog" (click)="$event.stopPropagation()">
+        <div class="confirm-dialog-header">
+          <h3>{{ confirmDialogData?.title }}</h3>
+        </div>
+        <div class="confirm-dialog-body">
+          <p>{{ confirmDialogData?.message }}</p>
+        </div>
+        <div class="confirm-dialog-actions">
+          <button class="cancel-btn" (click)="onConfirmDialogCancel()">
+            {{ confirmDialogData?.cancelText }}
+          </button>
+          <button class="confirm-btn" (click)="onConfirmDialogConfirm()">
+            {{ confirmDialogData?.confirmText }}
+          </button>
         </div>
       </div>
     </div>

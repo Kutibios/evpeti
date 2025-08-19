@@ -30,9 +30,13 @@ export class HomeComponent implements OnInit {
       this.currentUser = user;
       console.log('Updated state:', { isLoggedIn: this.isLoggedIn, currentUser: this.currentUser });
     });
-    this.setupDropdowns();
-    this.setupSearch();
-    this.setupDropdownCloseListener();
+    
+    // SSR sırasında document mevcut değil, sadece browser'da çalıştır
+    if (typeof document !== 'undefined') {
+      this.setupDropdowns();
+      this.setupSearch();
+      this.setupDropdownCloseListener();
+    }
   }
 
   setupDropdownCloseListener() {
@@ -108,6 +112,8 @@ export class HomeComponent implements OnInit {
   }
 
   setupLocationDropdown() {
+    if (typeof document === 'undefined') return;
+    
     const locationInput = document.getElementById('location') as HTMLInputElement;
     const locationDropdown = document.getElementById('location-dropdown') as HTMLDivElement;
     
@@ -129,6 +135,8 @@ export class HomeComponent implements OnInit {
   }
 
   setupPetTypeDropdown() {
+    if (typeof document === 'undefined') return;
+    
     const petTypeInput = document.getElementById('pet-type') as HTMLInputElement;
     const petTypeDropdown = document.getElementById('pet-type-dropdown') as HTMLDivElement;
     
@@ -150,6 +158,8 @@ export class HomeComponent implements OnInit {
   }
 
   displayDropdown(dropdown: HTMLDivElement, items: string[], input: HTMLInputElement) {
+    if (typeof document === 'undefined') return;
+    
     dropdown.innerHTML = '';
     dropdown.style.display = 'block';
     
@@ -166,6 +176,8 @@ export class HomeComponent implements OnInit {
   }
 
   setupSearchButton() {
+    if (typeof document === 'undefined') return;
+    
     const searchButton = document.getElementById('search-button');
     if (searchButton) {
       searchButton.addEventListener('click', () => {
@@ -175,6 +187,8 @@ export class HomeComponent implements OnInit {
   }
 
   performSearch() {
+    if (typeof document === 'undefined') return;
+    
     const location = (document.getElementById('location') as HTMLInputElement)?.value;
     const startDate = (document.getElementById('start-date') as HTMLInputElement)?.value;
     const endDate = (document.getElementById('end-date') as HTMLInputElement)?.value;

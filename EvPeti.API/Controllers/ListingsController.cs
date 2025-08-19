@@ -1,7 +1,8 @@
 
 using Microsoft.AspNetCore.Mvc;
-using EvPeti.API.Data;
 using EvPeti.API.Models;
+using EvPeti.API.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Controllers
 {
@@ -9,76 +10,263 @@ namespace EvPeti.API.Controllers
     [Route("api/[controller]")]
     public class ListingsController : ControllerBase
     {
-        private readonly EvPetiDbContext _context;
+        private readonly IListingService _listingService;
 
-        public ListingsController(EvPetiDbContext context)
+        public ListingsController(IListingService listingService)
         {
-            _context = context;
+            _listingService = listingService;
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var listings = _context.Listings.ToList();
-            return Ok(listings);
-        }
-
-        [HttpGet("user/{userId}")]
-        public IActionResult GetByUserId(int userId)
-        {
-            var listings = _context.Listings.Where(l => l.UserId == userId).ToList();
-            return Ok(listings);
-        }
-
-        [HttpPost]
-        public IActionResult Create([FromBody] Listing listing)
-        {
-            Console.WriteLine($"Listing create request received");
-            
-            if (listing == null)
-            {
-                Console.WriteLine("Listing is null");
-                return BadRequest("Listing bilgileri boş olamaz");
-            }
-
             try
             {
-                // User navigation property'sini null yap
-                listing.User = null;
-                
-                Console.WriteLine($"Adding listing to database: {listing.Type}, UserId: {listing.UserId}");
-                _context.Listings.Add(listing);
-                _context.SaveChanges();
-                Console.WriteLine($"Listing created successfully with ID: {listing.Id}");
-                return CreatedAtAction(nameof(GetAll), new { id = listing.Id }, listing);
+                var listings = await _listingService.GetUserListingsAsync(1); // TODO: Get from auth
+                var listingDtos = listings.Select(l => new ListingDto
+                {
+                    Id = l.Id,
+                    UserId = l.UserId,
+                    Title = l.Title,
+                    Type = l.Type,
+                    Price = l.Price,
+                    Location = l.Location,
+                    StartDate = l.StartDate,
+                    EndDate = l.EndDate,
+                    IsAvailable = l.IsAvailable,
+                    Description = l.Description,
+                    Status = l.Status,
+                    Experience = l.Experience,
+                    Services = l.Services,
+                    ImageUrls = l.ImageUrls,
+                    IsActive = l.IsActive,
+                    CreatedAt = l.CreatedAt
+                });
+                return Ok(listingDtos);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating listing: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return StatusCode(500, $"Listing oluşturulurken hata oluştu: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId(int userId)
+        {
+            try
+            {
+                var listings = await _listingService.GetUserListingsAsync(userId);
+                var listingDtos = listings.Select(l => new ListingDto
+                {
+                    Id = l.Id,
+                    UserId = l.UserId,
+                    Title = l.Title,
+                    Type = l.Type,
+                    Price = l.Price,
+                    Location = l.Location,
+                    StartDate = l.StartDate,
+                    EndDate = l.EndDate,
+                    IsAvailable = l.IsAvailable,
+                    Description = l.Description,
+                    Status = l.Status,
+                    Experience = l.Experience,
+                    Services = l.Services,
+                    ImageUrls = l.ImageUrls,
+                    IsActive = l.IsActive,
+                    CreatedAt = l.CreatedAt
+                });
+                return Ok(listingDtos);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var listing = await _listingService.GetListingByIdAsync(id);
+                if (listing == null)
+                    return NotFound($"Listing with ID {id} not found");
+
+                // Response için DTO oluştur
+                var listingDto = new ListingDto
+                {
+                    Id = listing.Id,
+                    UserId = listing.UserId,
+                    Title = listing.Title,
+                    Type = listing.Type,
+                    Price = listing.Price,
+                    Location = listing.Location,
+                    StartDate = listing.StartDate,
+                    EndDate = listing.EndDate,
+                    IsAvailable = listing.IsAvailable,
+                    Description = listing.Description,
+                    Status = listing.Status,
+                    Experience = listing.Experience,
+                    Services = listing.Services,
+                    ImageUrls = listing.ImageUrls,
+                    IsActive = listing.IsActive,
+                    CreatedAt = listing.CreatedAt
+                };
+
+                return Ok(listingDto);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateListingDto createDto)
+        {
+            try
+            {
+                if (createDto == null)
+                    return BadRequest("Listing data is required");
+
+                // DTO'dan Listing model'ine dönüştür
+                var listing = new Listing
+                {
+                    UserId = createDto.UserId,
+                    Title = createDto.Title,
+                    Type = createDto.Type,
+                    Price = createDto.Price,
+                    Location = createDto.Location,
+                    StartDate = createDto.StartDate,
+                    EndDate = createDto.EndDate,
+                    IsAvailable = createDto.IsAvailable,
+                    Description = createDto.Description,
+                    Status = createDto.Status,
+                    Experience = createDto.Experience,
+                    Services = createDto.Services,
+                    ImageUrls = createDto.ImageUrls,
+                    IsActive = createDto.IsActive
+                };
+
+                var newListing = await _listingService.CreateListingAsync(listing);
+                
+                // Response için DTO oluştur
+                var responseDto = new ListingDto
+                {
+                    Id = newListing.Id,
+                    UserId = newListing.UserId,
+                    Title = newListing.Title,
+                    Type = newListing.Type,
+                    Price = newListing.Price,
+                    Location = newListing.Location,
+                    StartDate = newListing.StartDate,
+                    EndDate = newListing.EndDate,
+                    IsAvailable = newListing.IsAvailable,
+                    Description = newListing.Description,
+                    Status = newListing.Status,
+                    Experience = newListing.Experience,
+                    Services = newListing.Services,
+                    ImageUrls = newListing.ImageUrls,
+                    IsActive = newListing.IsActive,
+                    CreatedAt = newListing.CreatedAt
+                };
+
+                return CreatedAtAction(nameof(GetById), new { id = newListing.Id }, responseDto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateListingDto updateDto)
+        {
+            try
+            {
+                if (updateDto == null)
+                    return BadRequest("Listing data is required");
+
+                // DTO'dan Listing model'ine dönüştür
+                var listing = new Listing
+                {
+                    Title = updateDto.Title,
+                    Type = updateDto.Type,
+                    Price = updateDto.Price ?? 0,
+                    Location = updateDto.Location,
+                    StartDate = updateDto.StartDate ?? DateTime.UtcNow,
+                    EndDate = updateDto.EndDate ?? DateTime.UtcNow,
+                    IsAvailable = updateDto.IsAvailable ?? true,
+                    Description = updateDto.Description,
+                    Status = updateDto.Status,
+                    Experience = updateDto.Experience ?? 0,
+                    Services = updateDto.Services,
+                    ImageUrls = updateDto.ImageUrls,
+                    IsActive = updateDto.IsActive ?? true
+                };
+
+                var updatedListing = await _listingService.UpdateListingAsync(id, listing);
+                
+                // Response için DTO oluştur
+                var responseDto = new ListingDto
+                {
+                    Id = updatedListing.Id,
+                    UserId = updatedListing.UserId,
+                    Title = updatedListing.Title,
+                    Type = updatedListing.Type,
+                    Price = updatedListing.Price,
+                    Location = updatedListing.Location,
+                    StartDate = updatedListing.StartDate,
+                    EndDate = updatedListing.EndDate,
+                    IsAvailable = updatedListing.IsAvailable,
+                    Description = updatedListing.Description,
+                    Status = updatedListing.Status,
+                    Experience = updatedListing.Experience,
+                    Services = updatedListing.Services,
+                    ImageUrls = updatedListing.ImageUrls,
+                    IsActive = updatedListing.IsActive,
+                    CreatedAt = updatedListing.CreatedAt
+                };
+
+                return Ok(responseDto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var listing = _context.Listings.Find(id);
-            if (listing == null)
-            {
-                return NotFound($"Listing with ID {id} not found");
-            }
-
             try
             {
-                _context.Listings.Remove(listing);
-                _context.SaveChanges();
+                await _listingService.DeleteListingAsync(id);
                 return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting listing: {ex.Message}");
-                return StatusCode(500, $"Listing silinirken hata oluştu: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }

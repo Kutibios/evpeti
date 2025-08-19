@@ -1,11 +1,20 @@
 using EvPeti.API.Data;
+using EvPeti.API.Services;
+using EvPeti.API.Services.DL;
+using EvPeti.API.Services.Managers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -24,6 +33,17 @@ builder.Services.AddCors(options =>
 // DbContext'i ekle
 builder.Services.AddDbContext<EvPetiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// DL Services
+builder.Services.AddScoped<IPetDLService, PetDLService>();
+builder.Services.AddScoped<IListingDLService, ListingDLService>();
+
+// Business Services
+builder.Services.AddScoped<IPetService, PetService>();
+builder.Services.AddScoped<IListingService, ListingService>();
+
+// Managers
+builder.Services.AddScoped<IDLServiceManager, DLServiceManager>();
 
 var app = builder.Build();
 
