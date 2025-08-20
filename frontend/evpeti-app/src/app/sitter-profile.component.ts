@@ -191,7 +191,7 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
         experience: 2,
         services: 'Günlük bakım',
         description: 'Test açıklama',
-        imageUrls: null,
+        imageUrls: finalImageUrls.length > 0 ? JSON.stringify(finalImageUrls) : null,
         isActive: true
       };
       
@@ -270,6 +270,8 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
 
   // Fotoğraf URL ekleme metodları
   addImageUrl() {
+    console.log('addImageUrl called with:', this.newImageUrl);
+    
     if (!this.newImageUrl || this.newImageUrl.trim() === '') {
       this.uiService.setError('Lütfen geçerli bir URL girin');
       return;
@@ -289,6 +291,7 @@ export class SitterProfileComponent implements OnInit, OnDestroy {
     }
 
     this.listingForm.imageUrls.push(this.newImageUrl.trim());
+    console.log('Photo added. Current imageUrls:', this.listingForm.imageUrls);
     this.newImageUrl = ''; // Input'u temizle
     this.uiService.setSuccess('Fotoğraf URL\'si eklendi');
   }

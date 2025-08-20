@@ -35,6 +35,11 @@ export interface Listing {
   isActive: boolean;
   userId: number;
   createdAt: Date;
+  
+  // User bilgileri
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
 }
 
 @Injectable({
@@ -109,6 +114,16 @@ export class DataService {
   }
 
   // LISTINGS OPERATIONS
+  getAllListings(page: number = 1, pageSize: number = 10): Observable<any> {
+    // Şimdilik eski endpoint'i kullan (pagination henüz aktif değil)
+    return this.http.get<any>(`${this.baseUrl}/listings`, { headers: this.getHeaders() })
+      .pipe(
+        tap(response => {
+          console.log('All listings loaded from API:', response);
+        })
+      );
+  }
+
   getUserListings(userId: number): Observable<Listing[]> {
     return this.http.get<Listing[]>(`${this.baseUrl}/listings/user/${userId}`, { headers: this.getHeaders() })
       .pipe(

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from './auth.service';
+import { DataService, Listing } from './services/data.service';
 import { HeaderComponent } from './header.component';
 
 @Component({
@@ -15,9 +16,19 @@ import { HeaderComponent } from './header.component';
 export class HomeComponent implements OnInit {
   isLoggedIn: boolean = false;
   currentUser: User | null = null;
+  listings: Listing[] = [];
+  isLoading: boolean = false;
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalCount: number = 0;
+  hasMoreListings: boolean = true;
 
-
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    private dataService: DataService
+  ) {}
 
   goToHome() {
     this.router.navigate(['/']);
@@ -31,6 +42,9 @@ export class HomeComponent implements OnInit {
       this.currentUser = user;
       console.log('Updated state:', { isLoggedIn: this.isLoggedIn, currentUser: this.currentUser });
     });
+    
+    // İlanları yükle
+    this.loadListings();
     
     // SSR sırasında document mevcut değil, sadece browser'da çalıştır
     if (typeof document !== 'undefined') {
@@ -152,6 +166,98 @@ export class HomeComponent implements OnInit {
       searchButton.addEventListener('click', () => {
         this.performSearch();
       });
+    }
+  }
+
+  loadListings(page: number = 1, append: boolean = false) {
+    this.isLoading = true;
+    this.dataService.getAllListings(page, this.pageSize).subscribe({
+      next: (response) => {
+        console.log('Raw API response:', response);
+        console.log('Response type:', typeof response);
+        console.log('Response is array:', Array.isArray(response));
+        
+        // Check if response is array (no pagination) or object (with pagination)
+        if (Array.isArray(response)) {
+          // No pagination - response is direct array
+          const listings = response;
+          
+          if (append) {
+            this.listings = [...this.listings, ...listings];
+          } else {
+            this.listings = listings;
+          }
+          
+          // Set pagination info for array response
+          this.currentPage = 1;
+          this.totalPages = 1;
+          this.totalCount = listings.length;
+          this.hasMoreListings = false; // No more pages for array response
+          
+        } else if (response && typeof response === 'object') {
+          // With pagination - response is object
+          console.log('Response keys:', Object.keys(response));
+          console.log('Response.Listings:', response.Listings);
+          console.log('Response.listings:', response.listings);
+          
+          // Try different property names
+          const listings = response.Listings || response.listings || response.Listings || [];
+          
+          if (append) {
+            this.listings = [...this.listings, ...listings];
+          } else {
+            this.listings = listings;
+          }
+          
+          this.currentPage = response.Page || response.page || 1;
+          this.totalPages = response.TotalPages || response.totalPages || 1;
+          this.totalCount = response.TotalCount || response.totalCount || 0;
+          this.hasMoreListings = this.currentPage < this.totalPages;
+        } else {
+          // Empty or invalid response
+          this.listings = [];
+          this.currentPage = 1;
+          this.totalPages = 1;
+          this.totalCount = 0;
+          this.hasMoreListings = false;
+        }
+        
+        console.log('Listings loaded:', this.listings);
+        console.log('Pagination info:', { currentPage: this.currentPage, totalPages: this.totalPages, hasMore: this.hasMoreListings });
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading listings:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  getImageUrls(imageUrls: string | null): string[] {
+    if (!imageUrls) return [];
+    try {
+      return JSON.parse(imageUrls);
+    } catch (error) {
+      console.error('Error parsing imageUrls:', error);
+      return [];
+    }
+  }
+
+  getPetEmoji(type: string): string {
+    switch (type?.toLowerCase()) {
+      case 'köpek': return '🐕';
+      case 'kedi': return '🐱';
+      case 'kuş': return '🦜';
+      case 'balık': return '🐠';
+      case 'hamster': return '🐹';
+      case 'tavşan': return '🐰';
+      default: return '🐾';
+    }
+  }
+
+  loadMoreListings() {
+    if (this.hasMoreListings && !this.isLoading) {
+      this.loadListings(this.currentPage + 1, true);
     }
   }
 

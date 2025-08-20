@@ -20,6 +20,21 @@ namespace EvPeti.API.Services
             return await _listingDL.GetByUserIdAsync(userId);
         }
 
+        public async Task<IEnumerable<Listing>> GetAllActiveListingsAsync()
+        {
+            return await _listingDL.GetAllActiveAsync();
+        }
+
+        public async Task<IEnumerable<Listing>> GetAllActiveListingsAsync(int page, int pageSize)
+        {
+            return await _listingDL.GetAllActiveAsync(page, pageSize);
+        }
+
+        public async Task<int> GetTotalActiveListingsCountAsync()
+        {
+            return await _listingDL.GetTotalActiveCountAsync();
+        }
+
         public async Task<Listing?> GetListingByIdAsync(int id)
         {
             if (id <= 0)

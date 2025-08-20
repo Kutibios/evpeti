@@ -18,11 +18,13 @@ namespace EvPeti.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var listings = await _listingService.GetUserListingsAsync(1); // TODO: Get from auth
+                var listings = await _listingService.GetAllActiveListingsAsync(page, pageSize);
+                var totalCount = await _listingService.GetTotalActiveListingsCountAsync();
+                
                 var listingDtos = listings.Select(l => new ListingDto
                 {
                     Id = l.Id,
@@ -40,9 +42,24 @@ namespace EvPeti.API.Controllers
                     Services = l.Services,
                     ImageUrls = l.ImageUrls,
                     IsActive = l.IsActive,
-                    CreatedAt = l.CreatedAt
+                    CreatedAt = l.CreatedAt,
+                    
+                    // User bilgileri
+                    UserName = l.User?.Name,
+                    UserEmail = l.User?.Email,
+                    UserPhone = l.User?.Phone
                 });
-                return Ok(listingDtos);
+
+                var response = new
+                {
+                    Listings = listingDtos,
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -73,7 +90,12 @@ namespace EvPeti.API.Controllers
                     Services = l.Services,
                     ImageUrls = l.ImageUrls,
                     IsActive = l.IsActive,
-                    CreatedAt = l.CreatedAt
+                    CreatedAt = l.CreatedAt,
+                    
+                    // User bilgileri
+                    UserName = l.User?.Name,
+                    UserEmail = l.User?.Email,
+                    UserPhone = l.User?.Phone
                 });
                 return Ok(listingDtos);
             }
@@ -114,7 +136,12 @@ namespace EvPeti.API.Controllers
                     Services = listing.Services,
                     ImageUrls = listing.ImageUrls,
                     IsActive = listing.IsActive,
-                    CreatedAt = listing.CreatedAt
+                    CreatedAt = listing.CreatedAt,
+                    
+                    // User bilgileri
+                    UserName = listing.User?.Name,
+                    UserEmail = listing.User?.Email,
+                    UserPhone = listing.User?.Phone
                 };
 
                 return Ok(listingDto);
@@ -176,7 +203,12 @@ namespace EvPeti.API.Controllers
                     Services = newListing.Services,
                     ImageUrls = newListing.ImageUrls,
                     IsActive = newListing.IsActive,
-                    CreatedAt = newListing.CreatedAt
+                    CreatedAt = newListing.CreatedAt,
+                    
+                    // User bilgileri
+                    UserName = newListing.User?.Name,
+                    UserEmail = newListing.User?.Email,
+                    UserPhone = newListing.User?.Phone
                 };
 
                 return CreatedAtAction(nameof(GetById), new { id = newListing.Id }, responseDto);
@@ -237,7 +269,12 @@ namespace EvPeti.API.Controllers
                     Services = updatedListing.Services,
                     ImageUrls = updatedListing.ImageUrls,
                     IsActive = updatedListing.IsActive,
-                    CreatedAt = updatedListing.CreatedAt
+                    CreatedAt = updatedListing.CreatedAt,
+                    
+                    // User bilgileri
+                    UserName = updatedListing.User?.Name,
+                    UserEmail = updatedListing.User?.Email,
+                    UserPhone = updatedListing.User?.Phone
                 };
 
                 return Ok(responseDto);

@@ -20,6 +20,33 @@ namespace EvPeti.API.Services.DL
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Listing>> GetAllActiveAsync()
+        {
+            return await _context.Listings
+                .Where(l => l.IsActive && l.IsAvailable)
+                .Include(l => l.User)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Listing>> GetAllActiveAsync(int page, int pageSize)
+        {
+            return await _context.Listings
+                .Where(l => l.IsActive && l.IsAvailable)
+                .Include(l => l.User)
+                .OrderByDescending(l => l.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalActiveCountAsync()
+        {
+            return await _context.Listings
+                .Where(l => l.IsActive && l.IsAvailable)
+                .CountAsync();
+        }
+
         public async Task<Listing?> GetByIdAsync(int id)
         {
             return await _context.Listings

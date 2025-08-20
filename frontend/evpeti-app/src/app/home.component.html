@@ -95,78 +95,67 @@
     </div>
 
     <div class="listings-grid" id="listings-grid">
-      <div class="listing-card">
-        <div class="listing-image">🐕</div>
-        <div class="listing-content">
-          <div class="listing-header">
-            <div>
-              <div class="listing-title">Deneyimli Köpek Bakıcısı</div>
-              <div class="listing-location">📍 İstanbul, Kadıköy</div>
-            </div>
-            <div class="listing-price">150 TL/gün</div>
-          </div>
-          <div class="listing-details">
-            <div class="listing-detail">🐾 Köpek</div>
-            <div class="listing-detail">⭐ 4.8</div>
-            <div class="listing-detail">📅 15.01.2024</div>
-          </div>
-          <div class="listing-description">5 yıllık deneyimle köpekleriniz için güvenilir bakım hizmeti. Ev ortamında sevgi dolu bakım.</div>
-          <div class="listing-footer">
-            <div class="listing-rating">⭐ 4.8 Puan</div>
-            <div class="listing-date">15.01.2024</div>
-          </div>
-        </div>
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+        <p>İlanlar yükleniyor...</p>
       </div>
 
-      <div class="listing-card">
-        <div class="listing-image">🐱</div>
-        <div class="listing-content">
-          <div class="listing-header">
-            <div>
-              <div class="listing-title">Kedi Bakım Uzmanı</div>
-              <div class="listing-location">📍 Ankara, Çankaya</div>
-            </div>
-            <div class="listing-price">120 TL/gün</div>
-          </div>
-          <div class="listing-details">
-            <div class="listing-detail">🐾 Kedi</div>
-            <div class="listing-detail">⭐ 4.9</div>
-            <div class="listing-detail">📅 14.01.2024</div>
-          </div>
-          <div class="listing-description">Kedileriniz için özel bakım. Ev ortamında sakin ve güvenli bir ortam.</div>
-          <div class="listing-footer">
-            <div class="listing-rating">⭐ 4.9 Puan</div>
-            <div class="listing-date">14.01.2024</div>
-          </div>
-        </div>
+      <!-- No Listings State -->
+      <div class="no-listings" *ngIf="!isLoading && listings.length === 0">
+        <p>Henüz ilan bulunmuyor.</p>
       </div>
 
-      <div class="listing-card">
-        <div class="listing-image">🦜</div>
+      <!-- Listings -->
+      <div class="listing-card" *ngFor="let listing of listings">
+        <!-- Listing Image -->
+        <div class="listing-image" *ngIf="listing.imageUrls && getImageUrls(listing.imageUrls).length > 0">
+          <img [src]="getImageUrls(listing.imageUrls)[0]" 
+               [alt]="listing.title || 'İlan fotoğrafı'"
+               class="listing-photo">
+        </div>
+        <div class="listing-image" *ngIf="!listing.imageUrls || getImageUrls(listing.imageUrls).length === 0">
+          {{ getPetEmoji(listing.type) }}
+        </div>
+
         <div class="listing-content">
           <div class="listing-header">
             <div>
-              <div class="listing-title">Kuş Bakım Hizmeti</div>
-              <div class="listing-location">📍 İzmir, Konak</div>
+              <div class="listing-title">{{ listing.title || 'Başlıksız İlan' }}</div>
+              <div class="listing-location">📍 {{ listing.location }}</div>
             </div>
-            <div class="listing-price">80 TL/gün</div>
+            <div class="listing-price">{{ listing.price }} ₺/gün</div>
           </div>
           <div class="listing-details">
-            <div class="listing-detail">🐾 Kuş</div>
-            <div class="listing-detail">⭐ 4.7</div>
-            <div class="listing-detail">📅 13.01.2024</div>
+            <div class="listing-detail">🐾 {{ listing.type }}</div>
+            <div class="listing-detail" *ngIf="listing.experience">⭐ {{ listing.experience }} yıl</div>
+            <div class="listing-detail">📅 {{ listing.createdAt | date:'dd/MM/yyyy' }}</div>
           </div>
-          <div class="listing-description">Kuşlarınız için profesyonel bakım. Özel beslenme ve temizlik.</div>
+          
+          <!-- User bilgileri -->
+          <div class="listing-user-info" *ngIf="listing.userName">
+            <div class="user-avatar">👤</div>
+            <div class="user-details">
+              <div class="user-name">{{ listing.userName }}</div>
+              <div class="user-contact" *ngIf="listing.userEmail">{{ listing.userEmail }}</div>
+            </div>
+          </div>
+          <div class="listing-description">{{ listing.description || 'Açıklama bulunmuyor.' }}</div>
           <div class="listing-footer">
-            <div class="listing-rating">⭐ 4.7 Puan</div>
-            <div class="listing-date">13.01.2024</div>
+            <div class="listing-rating" *ngIf="listing.experience">⭐ {{ listing.experience }} yıl deneyim</div>
+            <div class="listing-date">{{ listing.createdAt | date:'dd/MM/yyyy' }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="load-more-container">
-      <button class="load-more-btn" id="load-more-btn">Daha Fazla Yükle</button>
+    <div class="load-more-container" *ngIf="hasMoreListings">
+      <button class="load-more-btn" 
+              (click)="loadMoreListings()" 
+              [disabled]="isLoading">
+        <span *ngIf="!isLoading">Daha Fazla Yükle</span>
+        <span *ngIf="isLoading" class="loading-text">Yükleniyor...</span>
+      </button>
     </div>
   </div>
 </main> 

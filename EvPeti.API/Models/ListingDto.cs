@@ -20,6 +20,11 @@ namespace EvPeti.API.Models
         public string? ImageUrls { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        
+        // User bilgileri
+        public string? UserName { get; set; }
+        public string? UserEmail { get; set; }
+        public string? UserPhone { get; set; }
     }
 
     public class CreateListingDto

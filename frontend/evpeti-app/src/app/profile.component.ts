@@ -277,11 +277,18 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ImageUrls'i parse etme methodu
   getImageUrls(imageUrls: string | null): string[] {
-    if (!imageUrls) return [];
+    console.log('getImageUrls called with:', imageUrls);
+    if (!imageUrls) {
+      console.log('imageUrls is null or empty');
+      return [];
+    }
     try {
-      return JSON.parse(imageUrls);
+      const parsed = JSON.parse(imageUrls);
+      console.log('Successfully parsed imageUrls:', parsed);
+      return parsed;
     } catch (error) {
       console.error('Error parsing imageUrls:', error);
+      console.log('Raw imageUrls value:', imageUrls);
       return [];
     }
   }
