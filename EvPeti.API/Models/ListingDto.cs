@@ -25,6 +25,7 @@ namespace EvPeti.API.Models
         public string? UserName { get; set; }
         public string? UserEmail { get; set; }
         public string? UserPhone { get; set; }
+        public decimal? UserRating { get; set; }
     }
 
     public class CreateListingDto

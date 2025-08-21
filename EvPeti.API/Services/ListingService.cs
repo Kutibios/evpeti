@@ -40,7 +40,10 @@ namespace EvPeti.API.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid listing ID");
 
-            return await _listingDL.GetByIdAsync(id);
+            Console.WriteLine($"ListingService: GetByIdAsync çağrılıyor - ID: {id}");
+            var result = await _listingDL.GetByIdAsync(id);
+            Console.WriteLine($"ListingService: DL'den dönen result: {result?.Id}");
+            return result;
         }
 
         public async Task<Listing> CreateListingAsync(Listing listing)

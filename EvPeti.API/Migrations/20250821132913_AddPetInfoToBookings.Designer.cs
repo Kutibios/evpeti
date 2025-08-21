@@ -4,6 +4,7 @@ using EvPeti.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EvPeti.API.Migrations
 {
     [DbContext(typeof(EvPetiDbContext))]
-    partial class EvPetiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250821132913_AddPetInfoToBookings")]
+    partial class AddPetInfoToBookings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -89,7 +92,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Duty", b =>
@@ -128,7 +131,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Duties", (string)null);
+                    b.ToTable("Duties");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Listing", b =>
@@ -194,7 +197,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Listings", (string)null);
+                    b.ToTable("Listings");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Message", b =>
@@ -238,7 +241,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Notification", b =>
@@ -286,7 +289,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Pet", b =>
@@ -345,7 +348,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Pets", (string)null);
+                    b.ToTable("Pets");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Review", b =>
@@ -368,7 +371,7 @@ namespace EvPeti.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.User", b =>
@@ -417,7 +420,7 @@ namespace EvPeti.API.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("EvPeti.API.Models.Booking", b =>
@@ -425,13 +428,13 @@ namespace EvPeti.API.Migrations
                     b.HasOne("EvPeti.API.Models.Listing", "Listing")
                         .WithMany()
                         .HasForeignKey("ListingId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("EvPeti.API.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Listing");

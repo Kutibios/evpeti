@@ -107,7 +107,7 @@
       </div>
 
       <!-- Listings -->
-      <div class="listing-card" *ngFor="let listing of listings">
+      <div class="listing-card" *ngFor="let listing of listings" (click)="goToListingDetail(listing.id)" style="cursor: pointer;">
         <!-- Listing Image -->
         <div class="listing-image" *ngIf="listing.imageUrls && getImageUrls(listing.imageUrls).length > 0">
           <img [src]="getImageUrls(listing.imageUrls)[0]" 

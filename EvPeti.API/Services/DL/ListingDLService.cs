@@ -49,9 +49,13 @@ namespace EvPeti.API.Services.DL
 
         public async Task<Listing?> GetByIdAsync(int id)
         {
-            return await _context.Listings
+            Console.WriteLine($"ListingDLService: GetByIdAsync çağrıldı - ID: {id}");
+            var result = await _context.Listings
                 .Include(l => l.User)
                 .FirstOrDefaultAsync(l => l.Id == id);
+            Console.WriteLine($"ListingDLService: Veritabanından dönen result: {result?.Id}");
+            Console.WriteLine($"ListingDLService: User bilgisi: {result?.User?.Name}");
+            return result;
         }
 
         public async Task<IEnumerable<Listing>> GetByUserIdAsync(int userId)

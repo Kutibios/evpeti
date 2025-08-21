@@ -18,6 +18,15 @@ export interface Pet {
   photo?: string;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  phone?: string;
+  rating?: number;
+  createdAt?: Date;
+}
+
 export interface Listing {
   id: number;
   title?: string;
@@ -40,6 +49,63 @@ export interface Listing {
   userName?: string;
   userEmail?: string;
   userPhone?: string;
+  userRating?: number;
+}
+
+export interface Booking {
+  id?: number;
+  userId: number;
+  listingId: number;
+  startDate: string;
+  endDate: string;
+  petName: string;
+  petId?: number;
+  petType?: string;
+  petAge?: number;
+  notes?: string;
+  totalPrice: number;
+  status: 'Pending' | 'Accepted' | 'Rejected' | 'Completed' | 'Cancelled';
+  createdAt?: Date;
+  updatedAt?: Date;
+  acceptedAt?: Date;
+  rejectedAt?: Date;
+  userPhone?: string;
+  userEmail?: string;
+  
+  // İlişkili veriler
+  listing?: Listing;
+  user?: User;
+}
+
+export interface Message {
+  id?: number;
+  senderId: number;
+  receiverId: number;
+  bookingId: number;
+  content: string;
+  attachmentUrl?: string;
+  isRead: boolean;
+  readAt?: Date;
+  createdAt?: Date;
+  
+  // İlişkili veriler
+  sender?: User;
+  receiver?: User;
+  booking?: Booking;
+}
+
+export interface Notification {
+  id?: number;
+  userId: number;
+  type: string;
+  title: string;
+  content: string;
+  relatedId?: number;
+  relatedType?: string;
+  isRead: boolean;
+  readAt?: Date;
+  createdAt?: Date;
+  extraData?: string;
 }
 
 @Injectable({
@@ -56,7 +122,9 @@ export class DataService {
   public pets$ = this.petsSubject.asObservable();
   public listings$ = this.listingsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient
+  ) {}
 
   // HTTP Headers
   private getHeaders(): HttpHeaders {
@@ -114,12 +182,45 @@ export class DataService {
   }
 
   // LISTINGS OPERATIONS
-  getAllListings(page: number = 1, pageSize: number = 10): Observable<any> {
-    // Şimdilik eski endpoint'i kullan (pagination henüz aktif değil)
-    return this.http.get<any>(`${this.baseUrl}/listings`, { headers: this.getHeaders() })
+  getListingById(id: number): Observable<Listing> {
+    console.log(`DataService: getListingById çağrıldı - ID: ${id}`);
+    const url = `${this.baseUrl}/listings/${id}`;
+    console.log(`API URL: ${url}`);
+
+    return this.http.get<Listing>(url, { headers: this.getHeaders() })
       .pipe(
         tap(response => {
-          console.log('All listings loaded from API:', response);
+          console.log('DataService: Tek ilan API yanıtı alındı:', response);
+          console.log('Response type:', typeof response);
+          console.log('Response keys:', Object.keys(response || {}));
+          console.log('Response stringified:', JSON.stringify(response, null, 2));
+        })
+      );
+  }
+
+  getAllListings(page: number = 1, pageSize: number = 10): Observable<any> {
+    console.log(`DataService: getAllListings çağrıldı - Sayfa: ${page}, Boyut: ${pageSize}`);
+    
+    // Pagination parametrelerini query string olarak gönder
+    const url = page > 1 
+      ? `${this.baseUrl}/listings?page=${page}&pageSize=${pageSize}`
+      : `${this.baseUrl}/listings`;
+    
+    console.log(`API URL: ${url}`);
+    
+    return this.http.get<any>(url, { headers: this.getHeaders() })
+      .pipe(
+        tap(response => {
+          console.log('DataService: API yanıtı alındı:', response);
+          
+          // Response'u listings subject'e kaydet - sadece ilk sayfa için
+          if (page === 1) {
+            if (response && response.Listings) {
+              this.listingsSubject.next(response.Listings);
+            } else if (Array.isArray(response)) {
+              this.listingsSubject.next(response);
+            }
+          }
         })
       );
   }
@@ -184,6 +285,68 @@ export class DataService {
   getCurrentListings(): Listing[] {
     return this.listingsSubject.value;
   }
+
+  // BOOKING OPERATIONS
+  createBooking(booking: Omit<Booking, 'id' | 'createdAt'>): Observable<Booking> {
+    console.log('DataService: createBooking çağrıldı');
+    console.log('DataService: Gönderilen booking data:', booking);
+    
+    return this.http.post<Booking>(`${this.baseUrl}/bookings`, booking, { headers: this.getHeaders() })
+      .pipe(
+        tap(newBooking => {
+          console.log('DataService: Booking başarıyla oluşturuldu:', newBooking);
+        })
+      );
+  }
+
+  // NOTIFICATION OPERATIONS
+  getUserNotifications(userId: number): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.baseUrl}/notifications/user/${userId}`, { headers: this.getHeaders() });
+  }
+
+  getUnreadNotificationCount(userId: number): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/notifications/user/${userId}/unread-count`, { headers: this.getHeaders() });
+  }
+
+  markNotificationAsRead(notificationId: number): Observable<Notification> {
+    return this.http.put<Notification>(`${this.baseUrl}/notifications/${notificationId}/mark-read`, {}, { headers: this.getHeaders() });
+  }
+
+  markAllNotificationsAsRead(userId: number): Observable<boolean> {
+    return this.http.put<boolean>(`${this.baseUrl}/notifications/user/${userId}/mark-all-read`, {}, { headers: this.getHeaders() });
+  }
+
+  getUserBookings(userId: number): Observable<Booking[]> {
+    return this.http.get<Booking[]>(`${this.baseUrl}/bookings/user/${userId}`, { headers: this.getHeaders() });
+  }
+
+  getListingBookings(listingId: number): Observable<Booking[]> {
+    return this.http.get<Booking[]>(`${this.baseUrl}/bookings/listing/${listingId}`, { headers: this.getHeaders() });
+  }
+
+  // Ev sahibinin tüm ilanları için rezervasyon taleplerini getir
+  getOwnerBookings(ownerId: number): Observable<Booking[]> {
+    return this.http.get<Booking[]>(`${this.baseUrl}/bookings/owner/${ownerId}`, { headers: this.getHeaders() });
+  }
+
+  updateBookingStatus(bookingId: number, status: string): Observable<Booking> {
+    return this.http.put<Booking>(`${this.baseUrl}/bookings/${bookingId}/status`, { status }, { headers: this.getHeaders() });
+  }
+
+  // MESSAGE OPERATIONS
+  sendMessage(message: Omit<Message, 'id' | 'createdAt'>): Observable<Message> {
+    return this.http.post<Message>(`${this.baseUrl}/messages`, message, { headers: this.getHeaders() });
+  }
+
+  getBookingMessages(bookingId: number): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.baseUrl}/messages/booking/${bookingId}`, { headers: this.getHeaders() });
+  }
+
+  markMessageAsRead(messageId: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/messages/${messageId}/read`, {}, { headers: this.getHeaders() });
+  }
+
+
 
   // Clear state (logout için)
   clearState(): void {

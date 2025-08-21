@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from './auth.service';
 import { DataService, Listing } from './services/data.service';
 import { HeaderComponent } from './header.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +14,7 @@ import { HeaderComponent } from './header.component';
   templateUrl: './home.component.html',
   styleUrls: ['./app.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   isLoggedIn: boolean = false;
   currentUser: User | null = null;
   listings: Listing[] = [];
@@ -23,36 +24,80 @@ export class HomeComponent implements OnInit {
   totalPages: number = 0;
   totalCount: number = 0;
   hasMoreListings: boolean = true;
+  
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private router: Router, 
     private authService: AuthService,
-    private dataService: DataService
+    private dataService: DataService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   goToHome() {
     this.router.navigate(['/']);
   }
 
+  goToListingDetail(listingId: number) {
+    console.log('İlan detayına gidiliyor:', listingId);
+    this.router.navigate(['/listing', listingId]);
+  }
+
   ngOnInit() {
-    console.log('HomeComponent ngOnInit');
-    this.authService.currentUser$.subscribe((user: User | null) => {
-      console.log('User state changed:', user);
-      this.isLoggedIn = user !== null;
-      this.currentUser = user;
-      console.log('Updated state:', { isLoggedIn: this.isLoggedIn, currentUser: this.currentUser });
-    });
-    
-    // İlanları yükle
-    this.loadListings();
+    console.log('HomeComponent ngOnInit başladı');
     
     // SSR sırasında document mevcut değil, sadece browser'da çalıştır
     if (typeof document !== 'undefined') {
+      console.log('Document mevcut (Browser), tüm işlemler yapılıyor...');
+      
+      // Auth state'i dinle
+      const authSub = this.authService.currentUser$.subscribe((user: User | null) => {
+        console.log('User state changed:', user);
+        this.isLoggedIn = user !== null;
+        this.currentUser = user;
+        console.log('Updated state:', { isLoggedIn: this.isLoggedIn, currentUser: this.currentUser });
+      });
+      this.subscriptions.push(authSub);
+      
+      // DataService'ten listings'i dinle
+      const listingsSub = this.dataService.listings$.subscribe((listings: Listing[]) => {
+        console.log('DataService\'ten listings güncellendi:', listings);
+        if (listings && listings.length > 0) {
+          this.listings = listings;
+          console.log('Component listings güncellendi:', this.listings);
+          // Change detection'ı tetikle
+          this.cdr.detectChanges();
+        }
+      });
+      this.subscriptions.push(listingsSub);
+      
+      // İlanları yükle - sadece browser'da
+      console.log('İlanlar yüklenmeye başlanıyor...');
+      setTimeout(() => {
+        this.loadListings();
+      }, 100);
+      
+      // Dropdown ve search setup
       this.setupDropdowns();
       this.setupSearch();
+      
+    } else {
+      console.log('Document mevcut değil (SSR), sadece temel işlemler yapılıyor...');
+      
+      // SSR sırasında sadece auth state'i dinle (HTTP isteği yapmadan)
+      const authSub = this.authService.currentUser$.subscribe((user: User | null) => {
+        this.isLoggedIn = user !== null;
+        this.currentUser = user;
+      });
+      this.subscriptions.push(authSub);
     }
+    
+    console.log('HomeComponent ngOnInit tamamlandı');
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
 
 
   logout() {
@@ -170,29 +215,37 @@ export class HomeComponent implements OnInit {
   }
 
   loadListings(page: number = 1, append: boolean = false) {
+    // SSR sırasında HTTP isteği yapma
+    if (typeof document === 'undefined') {
+      console.log('SSR sırasında HTTP isteği yapılmadı');
+      return;
+    }
+    
+    // Eğer zaten yükleniyorsa, yeni istek yapma
+    if (this.isLoading) {
+      console.log('Zaten yükleniyor, yeni istek yapılmadı');
+      return;
+    }
+
+    console.log(`İlanlar yükleniyor - Sayfa: ${page}, Append: ${append}`);
     this.isLoading = true;
+    
     this.dataService.getAllListings(page, this.pageSize).subscribe({
       next: (response) => {
-        console.log('Raw API response:', response);
+        console.log('API yanıtı alındı:', response);
         console.log('Response type:', typeof response);
         console.log('Response is array:', Array.isArray(response));
+        
+        let listings: Listing[] = [];
+        let totalCount = 0;
+        let totalPages = 1;
         
         // Check if response is array (no pagination) or object (with pagination)
         if (Array.isArray(response)) {
           // No pagination - response is direct array
-          const listings = response;
-          
-          if (append) {
-            this.listings = [...this.listings, ...listings];
-          } else {
-            this.listings = listings;
-          }
-          
-          // Set pagination info for array response
-          this.currentPage = 1;
-          this.totalPages = 1;
-          this.totalCount = listings.length;
-          this.hasMoreListings = false; // No more pages for array response
+          listings = response;
+          totalCount = listings.length;
+          totalPages = 1;
           
         } else if (response && typeof response === 'object') {
           // With pagination - response is object
@@ -201,34 +254,61 @@ export class HomeComponent implements OnInit {
           console.log('Response.listings:', response.listings);
           
           // Try different property names
-          const listings = response.Listings || response.listings || response.Listings || [];
+          listings = response.Listings || response.listings || [];
+          totalCount = response.TotalCount || response.totalCount || 0;
+          totalPages = response.TotalPages || response.totalPages || 1;
           
-          if (append) {
-            this.listings = [...this.listings, ...listings];
-          } else {
-            this.listings = listings;
-          }
-          
-          this.currentPage = response.Page || response.page || 1;
-          this.totalPages = response.TotalPages || response.totalPages || 1;
-          this.totalCount = response.TotalCount || response.totalCount || 0;
-          this.hasMoreListings = this.currentPage < this.totalPages;
         } else {
           // Empty or invalid response
-          this.listings = [];
-          this.currentPage = 1;
-          this.totalPages = 1;
-          this.totalCount = 0;
-          this.hasMoreListings = false;
+          listings = [];
+          totalCount = 0;
+          totalPages = 1;
         }
         
-        console.log('Listings loaded:', this.listings);
-        console.log('Pagination info:', { currentPage: this.currentPage, totalPages: this.totalPages, hasMore: this.hasMoreListings });
+        // Update listings array
+        if (append && page > 1) {
+          // Append mode - add to existing listings
+          this.listings = [...this.listings, ...listings];
+          console.log(`İlanlar eklendi. Toplam: ${this.listings.length}`);
+        } else {
+          // Replace mode - replace all listings
+          this.listings = listings;
+          console.log(`İlanlar değiştirildi. Toplam: ${this.listings.length}`);
+        }
+        
+        // Update pagination info - DÜZELTME: totalPages hesaplaması
+        this.currentPage = page;
+        this.totalPages = totalPages;
+        this.totalCount = totalCount;
+        
+        // DÜZELTME: hasMoreListings hesaplaması - mevcut listings sayısına göre
+        const currentTotal = this.listings.length;
+        this.hasMoreListings = currentTotal < totalCount;
+        
+        console.log('İlanlar yüklendi:', this.listings);
+        console.log('Pagination bilgisi:', { 
+          currentPage: this.currentPage, 
+          totalPages: this.totalPages, 
+          totalCount: this.totalCount,
+          currentTotal: currentTotal,
+          hasMore: this.hasMoreListings 
+        });
+        
+        // Change detection'ı manuel olarak tetikle
+        this.cdr.detectChanges();
+        console.log('Change detection tetiklendi');
+        
         this.isLoading = false;
+        // Loading false olduktan sonra da change detection tetikle
+        this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading listings:', error);
+        console.error('İlanlar yüklenirken hata:', error);
         this.isLoading = false;
+        // Hata durumunda boş array göster
+        this.listings = [];
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       }
     });
   }
@@ -256,8 +336,27 @@ export class HomeComponent implements OnInit {
   }
 
   loadMoreListings() {
+    console.log('Daha fazla ilan yükleniyor...');
+    console.log('Mevcut durum:', { 
+      hasMore: this.hasMoreListings, 
+      isLoading: this.isLoading, 
+      currentPage: this.currentPage, 
+      totalPages: this.totalPages,
+      currentListingsCount: this.listings.length,
+      totalCount: this.totalCount
+    });
+    
     if (this.hasMoreListings && !this.isLoading) {
-      this.loadListings(this.currentPage + 1, true);
+      const nextPage = this.currentPage + 1;
+      console.log(`Sonraki sayfa yükleniyor: ${nextPage}`);
+      console.log(`Mevcut ilan sayısı: ${this.listings.length}, Toplam beklenen: ${this.totalCount}`);
+      this.loadListings(nextPage, true);
+    } else {
+      console.log('Daha fazla yükleme yapılamıyor:', { 
+        hasMore: this.hasMoreListings, 
+        isLoading: this.isLoading,
+        reason: !this.hasMoreListings ? 'Tüm ilanlar yüklendi' : 'Zaten yükleniyor'
+      });
     }
   }
 

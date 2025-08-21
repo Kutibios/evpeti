@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
@@ -34,7 +34,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
     private router: Router,
     private authService: AuthService,
     private dataService: DataService,
-    private uiService: UIService
+    private uiService: UIService,
+    private cdr: ChangeDetectorRef
   ) {
     // UI state'i dinle
     this.uiSubscription = this.uiService.uiState$.subscribe(state => {
@@ -51,10 +52,14 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log('Pets subscription triggered:', pets);
         this.pets = pets || [];
         console.log('Pets updated from DataService:', this.pets);
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Pets subscription error:', error);
         this.pets = [];
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       }
     });
 
@@ -63,10 +68,14 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log('Listings subscription triggered:', listings);
         this.listings = listings || [];
         console.log('Listings updated from DataService:', this.listings);
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Listings subscription error:', error);
         this.listings = [];
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       }
     });
   }
@@ -120,6 +129,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log('DL: Pets loaded successfully:', pets);
         console.log('DL: Pets count:', pets?.length || 0);
         this.uiService.setLoading(false);
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('DL: Error loading pets:', error);
@@ -129,6 +140,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           this.uiService.setError('Pet profilleri yüklenirken hata oluştu: ' + error.message);
         }
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       }
     });
 
@@ -141,6 +154,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log('DL: Listings assigned to component:', this.listings);
         console.log('DL: First listing imageUrls:', this.listings[0]?.imageUrls);
         this.uiService.setLoading(false);
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('DL: Error loading listings:', error);
@@ -150,6 +165,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           this.uiService.setError('İlanlar yüklenirken hata oluştu: ' + error.message);
         }
+        // Change detection'ı tetikle
+        this.cdr.detectChanges();
       }
     });
   }

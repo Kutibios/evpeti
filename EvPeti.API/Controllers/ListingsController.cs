@@ -47,7 +47,8 @@ namespace EvPeti.API.Controllers
                     // User bilgileri
                     UserName = l.User?.Name,
                     UserEmail = l.User?.Email,
-                    UserPhone = l.User?.Phone
+                    UserPhone = l.User?.Phone,
+                    UserRating = l.User?.Rating
                 });
 
                 var response = new
@@ -95,7 +96,8 @@ namespace EvPeti.API.Controllers
                     // User bilgileri
                     UserName = l.User?.Name,
                     UserEmail = l.User?.Email,
-                    UserPhone = l.User?.Phone
+                    UserPhone = l.User?.Phone,
+                    UserRating = l.User?.Rating
                 });
                 return Ok(listingDtos);
             }
@@ -114,7 +116,9 @@ namespace EvPeti.API.Controllers
         {
             try
             {
+                Console.WriteLine($"ListingsController: GetById çağrıldı - ID: {id}");
                 var listing = await _listingService.GetListingByIdAsync(id);
+                Console.WriteLine($"ListingsController: Service'ten dönen listing: {listing?.Id}");
                 if (listing == null)
                     return NotFound($"Listing with ID {id} not found");
 
@@ -141,8 +145,12 @@ namespace EvPeti.API.Controllers
                     // User bilgileri
                     UserName = listing.User?.Name,
                     UserEmail = listing.User?.Email,
-                    UserPhone = listing.User?.Phone
+                    UserPhone = listing.User?.Phone,
+                    UserRating = listing.User?.Rating
                 };
+
+                Console.WriteLine($"ListingsController: DTO oluşturuldu - ID: {listingDto.Id}, Title: {listingDto.Title}");
+                Console.WriteLine($"ListingsController: DTO JSON: {System.Text.Json.JsonSerializer.Serialize(listingDto)}");
 
                 return Ok(listingDto);
             }
@@ -208,7 +216,8 @@ namespace EvPeti.API.Controllers
                     // User bilgileri
                     UserName = newListing.User?.Name,
                     UserEmail = newListing.User?.Email,
-                    UserPhone = newListing.User?.Phone
+                    UserPhone = newListing.User?.Phone,
+                    UserRating = newListing.User?.Rating
                 };
 
                 return CreatedAtAction(nameof(GetById), new { id = newListing.Id }, responseDto);

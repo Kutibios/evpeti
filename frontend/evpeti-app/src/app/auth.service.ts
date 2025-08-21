@@ -3,11 +3,11 @@ import { BehaviorSubject } from 'rxjs';
 
 export interface User {
   id: number;
-  name: string;
+  username: string;
   email: string;
-  city: string;
-  isSitter: boolean;
-  rating: number;
+  city?: string;
+  isSitter?: boolean;
+  rating?: number;
 }
 
 @Injectable({

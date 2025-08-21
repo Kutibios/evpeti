@@ -52,6 +52,20 @@ namespace EvPeti.API.Data
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            // Booking tablosu için foreign key ilişkileri
+            modelBuilder.Entity<Booking>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(e => e.Listing)
+                    .WithMany()
+                    .HasForeignKey(e => e.ListingId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
         }
     }
 }
