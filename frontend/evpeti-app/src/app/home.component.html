@@ -136,7 +136,15 @@
           <div class="listing-user-info" *ngIf="listing.userName">
             <div class="user-avatar">👤</div>
             <div class="user-details">
-              <div class="user-name">{{ listing.userName }}</div>
+              <div class="user-name">
+                {{ listing.userName }}
+                <span class="user-rating" *ngIf="listing.userRating && listing.userRating > 0">
+                  ⭐ {{ listing.userRating | number:'1.1-1' }}
+                </span>
+                <span class="user-rating" *ngIf="!listing.userRating || listing.userRating === 0">
+                  ⭐ Yeni
+                </span>
+              </div>
               <div class="user-contact" *ngIf="listing.userEmail">{{ listing.userEmail }}</div>
             </div>
           </div>

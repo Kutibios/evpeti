@@ -55,6 +55,12 @@ import { Subscription } from 'rxjs';
         </button>
         <button 
           class="tab-btn" 
+          [class.active]="activeTab === 'cancelled'"
+          (click)="setActiveTab('cancelled')">
+          İptal Edildi ({{ cancelledBookings.length }})
+        </button>
+        <button 
+          class="tab-btn" 
           [class.active]="activeTab === 'all'"
           (click)="setActiveTab('all')">
           Tümü ({{ allBookings.length }})
@@ -147,7 +153,7 @@ import { Subscription } from 'rxjs';
               class="action-btn chat-btn" 
               (click)="openChat(booking)"
               [disabled]="isProcessing">
-              💬 Mesaj Gönder
+              💬 Sohbet Et
             </button>
           </div>
 
@@ -175,6 +181,42 @@ import { Subscription } from 'rxjs';
               ❌ Reddedildi: {{ booking.rejectedAt | date:'dd/MM/yyyy HH:mm' }}
             </p>
           </div>
+
+          <!-- Rejected Actions - Reddedilen rezervasyonlar için de sohbet butonu -->
+          <div class="booking-actions" *ngIf="booking.status === 'Rejected'">
+            <button 
+              class="action-btn chat-btn" 
+              (click)="openChat(booking)">
+              💬 Sohbet Et
+            </button>
+          </div>
+
+          <!-- Completed Actions - Tamamlanan rezervasyonlar için de sohbet butonu -->
+          <div class="booking-actions" *ngIf="booking.status === 'Rejected'">
+            <button 
+              class="action-btn chat-btn" 
+              (click)="openChat(booking)">
+              💬 Sohbet Et
+            </button>
+          </div>
+
+          <!-- Completed Actions - Tamamlanan rezervasyonlar için de sohbet butonu -->
+          <div class="booking-actions" *ngIf="booking.status === 'Completed'">
+            <button 
+              class="edit-btn chat-btn" 
+              (click)="openChat(booking)">
+              💬 Sohbet Et
+            </button>
+          </div>
+
+          <!-- Cancelled Actions - İptal edilen rezervasyonlar için de sohbet butonu -->
+          <div class="booking-actions" *ngIf="booking.status === 'Cancelled'">
+            <button 
+              class="action-btn chat-btn" 
+              (click)="openChat(booking)">
+              💬 Sohbet Et
+            </button>
+          </div>
         </div>
       </div>
 
@@ -197,7 +239,7 @@ export class BookingRequestsComponent implements OnInit, OnDestroy {
   isProcessing: boolean = false;
   
   allBookings: Booking[] = [];
-  activeTab: string = 'pending';
+  activeTab: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'all' = 'pending';
   
   private subscriptions: Subscription[] = [];
 
@@ -263,16 +305,21 @@ export class BookingRequestsComponent implements OnInit, OnDestroy {
     return this.allBookings.filter(b => b.status === 'Rejected');
   }
 
+  get cancelledBookings(): Booking[] {
+    return this.allBookings.filter(b => b.status === 'Cancelled');
+  }
+
   get currentBookings(): Booking[] {
     switch (this.activeTab) {
       case 'pending': return this.pendingBookings;
       case 'accepted': return this.acceptedBookings;
       case 'rejected': return this.rejectedBookings;
+      case 'cancelled': return this.cancelledBookings;
       default: return this.allBookings;
     }
   }
 
-  setActiveTab(tab: string) {
+  setActiveTab(tab: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'all') {
     this.activeTab = tab;
   }
 
@@ -407,8 +454,14 @@ export class BookingRequestsComponent implements OnInit, OnDestroy {
   }
 
   openChat(booking: Booking) {
-    // Chat sayfasına yönlendir
-    this.router.navigate(['/messages'], { queryParams: { bookingId: booking.id } });
+    if (booking.id) {
+      console.log('Chat açılıyor, booking ID:', booking.id);
+      // Chat sayfasına yönlendir
+      this.router.navigate(['/chat', booking.id]);
+    } else {
+      console.error('Booking ID bulunamadı:', booking);
+      alert('Rezervasyon ID bulunamadı. Lütfen sayfayı yenileyin.');
+    }
   }
 
   getEmptyMessage(): string {
@@ -416,6 +469,7 @@ export class BookingRequestsComponent implements OnInit, OnDestroy {
       case 'pending': return 'Bekleyen rezervasyon talebi yok';
       case 'accepted': return 'Kabul edilmiş rezervasyon yok';
       case 'rejected': return 'Reddedilmiş rezervasyon yok';
+      case 'cancelled': return 'İptal edilmiş rezervasyon yok';
       default: return 'Henüz rezervasyon talebi yok';
     }
   }
@@ -425,6 +479,7 @@ export class BookingRequestsComponent implements OnInit, OnDestroy {
       case 'pending': return 'Yeni rezervasyon talepleri geldiğinde burada görünecek.';
       case 'accepted': return 'Kabul ettiğiniz rezervasyonlar burada görünecek.';
       case 'rejected': return 'Reddettiğiniz rezervasyonlar burada görünecek.';
+      case 'cancelled': return 'İptal ettiğiniz rezervasyonlar burada görünecek.';
       default: return 'İlanlarınıza rezervasyon talepleri geldiğinde burada görünecek.';
     }
   }

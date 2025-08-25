@@ -112,22 +112,52 @@ import { Subscription } from 'rxjs';
               </div>
 
               <div class="booking-actions">
+                <!-- Sohbet Et butonu - Her durumda görünür -->
                 <button 
                   class="action-btn chat-btn" 
-                  (click)="openChat(booking)"
-                  *ngIf="booking.status === 'Accepted'">
+                  (click)="openChat(booking.id)">
                   💬 Sohbet Et
                 </button>
+                
+                <!-- İptal Et butonu - Sadece bekleyen rezervasyonlar için -->
                 <button 
                   class="action-btn cancel-btn" 
                   (click)="cancelBooking(booking)"
                   *ngIf="booking.status === 'Pending'">
                   ❌ İptal Et
                 </button>
+                
+                <!-- İlanı Gör butonu -->
                 <button 
                   class="action-btn view-btn" 
                   (click)="viewListing(booking.listingId)">
                   👁️ İlanı Gör
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tamamlanan rezervasyonlar -->
+        <div *ngIf="completedBookings.length > 0" class="bookings-section">
+          <h3>Tamamlanan Rezervasyonlar</h3>
+          <div class="bookings-grid">
+            <div *ngFor="let booking of completedBookings" class="booking-card">
+              <div class="booking-header">
+                <h4>{{ getListingTitle(booking.listingId) }}</h4>
+                <span class="status completed">{{ getStatusText(booking.status) }}</span>
+              </div>
+              <div class="booking-details">
+                <p><strong>Tarih:</strong> {{ formatDate(booking.startDate) }} - {{ formatDate(booking.endDate) }}</p>
+                <p><strong>Pet:</strong> {{ getPetName(booking.petId) }}</p>
+                <p><strong>Fiyat:</strong> {{ booking.totalPrice }} TL</p>
+              </div>
+              <div class="booking-actions">
+                <button class="chat-btn" (click)="openChat(booking.id)">
+                  💬 Sohbet Et
+                </button>
+                <button class="rating-btn" (click)="openRating(booking.id)">
+                  ⭐ Değerlendir
                 </button>
               </div>
             </div>
@@ -259,8 +289,22 @@ export class BookingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  openChat(booking: Booking) {
-    this.router.navigate(['/chat', booking.id]);
+  openChat(bookingId: number | undefined) {
+    if (bookingId) {
+      console.log('Chat açılıyor, booking ID:', bookingId);
+      this.router.navigate(['/chat', bookingId]);
+    } else {
+      console.error('Booking ID bulunamadı');
+    }
+  }
+
+  openRating(bookingId: number | undefined) {
+    if (bookingId) {
+      console.log('Rating sayfası açılıyor, booking ID:', bookingId);
+      this.router.navigate(['/rating', bookingId]);
+    } else {
+      console.error('Booking ID bulunamadı');
+    }
   }
 
   cancelBooking(booking: Booking) {
@@ -283,5 +327,23 @@ export class BookingsComponent implements OnInit, OnDestroy {
 
   goToHome() {
     this.router.navigate(['/']);
+  }
+
+  // Helper methods for completed bookings section
+  getListingTitle(listingId: number): string {
+    const listing = this.allBookings.find(b => b.listingId === listingId)?.listing;
+    return listing?.title || 'İlan Başlığı Yok';
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'Tarih Yok';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR');
+  }
+
+  getPetName(petId: number | undefined): string {
+    if (!petId) return 'Pet Adı Yok';
+    // For now, return a placeholder - you might want to implement pet lookup logic
+    return 'Pet Adı';
   }
 }

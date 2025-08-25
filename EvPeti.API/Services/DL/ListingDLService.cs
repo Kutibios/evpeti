@@ -62,6 +62,7 @@ namespace EvPeti.API.Services.DL
         {
             return await _context.Listings
                 .Where(l => l.UserId == userId)
+                .Include(l => l.User)
                 .ToListAsync();
         }
 

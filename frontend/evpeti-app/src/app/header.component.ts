@@ -57,6 +57,7 @@ import { Subscription } from 'rxjs';
                      <div class="user-info">
              <span class="user-name">{{ currentUser?.username }}</span>
              <span class="user-rating">⭐ {{ currentUser?.rating }}</span>
+             <button (click)="refreshRating()" style="margin-left: 10px; padding: 2px 8px; font-size: 12px;">🔄</button>
            </div>
           <div class="user-buttons">
             <div class="profile-btn-container">
@@ -120,6 +121,39 @@ export class HeaderComponent implements OnInit, OnDestroy, OnChanges {
     this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
       this.currentTheme = theme;
     });
+
+    // AuthService'ten güncel user bilgisini al
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUser = user;
+        this.isLoggedIn = true;
+        // Bildirim sayısını yükle
+        this.loadNotificationCount();
+      } else {
+        this.currentUser = null;
+        this.isLoggedIn = false;
+      }
+    });
+
+    // Rating güncellemesi için event listener ekle
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ratingUpdated', (event: any) => {
+        const { userId, rating } = event.detail;
+        if (this.currentUser && this.currentUser.id === userId) {
+          console.log(`Header: Rating updated for user ${userId} to ${rating}`);
+          this.currentUser.rating = rating;
+          // AuthService'i de güncelle
+          this.authService.updateUserRating(userId, rating);
+        }
+      });
+    }
+
+    // Rating güncellemesi için interval ile kontrol et
+    if (this.currentUser?.id && typeof window !== 'undefined') {
+      setInterval(() => {
+        this.refreshUserRating();
+      }, 5000); // Her 5 saniyede bir kontrol et
+    }
 
     // Bildirim sayısını yükle
     if (this.isLoggedIn && this.currentUser?.id) {
@@ -207,5 +241,33 @@ export class HeaderComponent implements OnInit, OnDestroy, OnChanges {
     this.authService.logout();
     this.router.navigate(['/']);
     this.showProfileDropdown = false;
+  }
+
+  // Kullanıcı rating'ini yenile
+  private refreshUserRating() {
+    if (this.currentUser?.id) {
+      this.dataService.getUser(this.currentUser.id).subscribe(updatedUser => {
+        if (updatedUser && updatedUser.rating !== undefined && updatedUser.rating !== this.currentUser?.rating) {
+          console.log(`Rating updated from ${this.currentUser?.rating} to ${updatedUser.rating}`);
+          this.currentUser = updatedUser;
+          // AuthService'i de güncelle
+          if (updatedUser.id && updatedUser.rating !== undefined) {
+            this.authService.updateUserRating(updatedUser.id, updatedUser.rating);
+          }
+        }
+      });
+    }
+  }
+
+  refreshRating() {
+    if (this.currentUser?.id) {
+      this.dataService.getUser(this.currentUser.id).subscribe(user => {
+        if (user && user.rating !== undefined) {
+          this.currentUser = user;
+          this.authService.updateUserRating(user.id, user.rating);
+          console.log(`Rating refreshed for user ${user.id} to ${user.rating}`);
+        }
+      });
+    }
   }
 }

@@ -65,4 +65,25 @@ export class AuthService {
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
+
+  updateUserRating(userId: number, newRating: number) {
+    // Tüm kullanıcıların rating'ini güncelle
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser) {
+      // Eğer güncel kullanıcı değerlendirilen kullanıcıysa rating'ini güncelle
+      if (currentUser.id === userId) {
+        currentUser.rating = newRating;
+        this.currentUserSubject.next(currentUser);
+        
+        // LocalStorage'ı da güncelle
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        }
+      }
+      
+      // Diğer kullanıcıların rating'ini de güncellemek için
+      // DataService'ten güncel user bilgisini al
+      console.log(`Updating rating for user ${userId} to ${newRating}`);
+    }
+  }
 } 

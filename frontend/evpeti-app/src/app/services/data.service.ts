@@ -86,7 +86,7 @@ export interface Message {
   attachmentUrl?: string;
   isRead: boolean;
   readAt?: Date;
-  createdAt?: Date;
+  createdAt: Date;
   
   // İlişkili veriler
   sender?: User;
@@ -106,6 +106,21 @@ export interface Notification {
   readAt?: Date;
   createdAt?: Date;
   extraData?: string;
+}
+
+export interface Review {
+  id?: number;
+  bookingId: number;
+  reviewerId: number;
+  reviewedUserId: number;
+  rating: number;
+  comment: string;
+  createdAt?: Date;
+  
+  // İlişkili veriler
+  reviewer?: User;
+  reviewedUser?: User;
+  booking?: Booking;
 }
 
 @Injectable({
@@ -338,14 +353,49 @@ export class DataService {
     return this.http.post<Message>(`${this.baseUrl}/messages`, message, { headers: this.getHeaders() });
   }
 
-  getBookingMessages(bookingId: number): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.baseUrl}/messages/booking/${bookingId}`, { headers: this.getHeaders() });
+  getChatMessages(bookingId: number): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.baseUrl}/messages/chat/${bookingId}`, { headers: this.getHeaders() });
+  }
+
+  getUserConversations(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/messages/conversations/${userId}`, { headers: this.getHeaders() });
   }
 
   markMessageAsRead(messageId: number): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/messages/${messageId}/read`, {}, { headers: this.getHeaders() });
   }
 
+  markChatAsRead(bookingId: number, userId: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/messages/chat/${bookingId}/read`, { userId }, { headers: this.getHeaders() });
+  }
+
+  // USER OPERATIONS
+  getUser(userId: number): Observable<User> {
+    return this.http.get<User>(`${this.baseUrl}/User/${userId}`, { headers: this.getHeaders() });
+  }
+
+  // BOOKING OPERATIONS - Eksik metodlar
+  getBooking(bookingId: number): Observable<Booking> {
+    return this.http.get<Booking>(`${this.baseUrl}/bookings/${bookingId}`, { headers: this.getHeaders() });
+  }
+
+  // LISTING OPERATIONS - Eksik metodlar
+  getListing(listingId: number): Observable<Listing> {
+    return this.http.get<Listing>(`${this.baseUrl}/listings/${listingId}`, { headers: this.getHeaders() });
+  }
+
+  // REVIEW OPERATIONS
+  createReview(review: Omit<Review, 'id' | 'createdAt'>): Observable<Review> {
+    return this.http.post<Review>(`${this.baseUrl}/reviews`, review, { headers: this.getHeaders() });
+  }
+
+  getUserReviews(userId: number): Observable<Review[]> {
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews/user/${userId}`, { headers: this.getHeaders() });
+  }
+
+  getBookingReviews(bookingId: number): Observable<Review[]> {
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews/booking/${bookingId}`, { headers: this.getHeaders() });
+  }
 
 
   // Clear state (logout için)

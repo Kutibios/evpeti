@@ -66,6 +66,24 @@ namespace EvPeti.API.Data
                     .HasForeignKey(e => e.ListingId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
+
+            // Review tablosu için foreign key ilişkileri
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.Booking)
+                    .WithMany()
+                    .HasForeignKey(e => e.BookingId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Reviewer)
+                    .WithMany()
+                    .HasForeignKey(e => e.ReviewerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.ReviewedUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.ReviewedUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }
