@@ -40,17 +40,17 @@ export class AuthApiService {
 
   // Kullanıcı kayıt işlemi
   register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/users/register`, request);
+    return this.http.post<AuthResponse>(`${this.baseUrl}/User/register`, request);
   }
 
   // Kullanıcı giriş işlemi
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/users/login`, request);
+    return this.http.post<AuthResponse>(`${this.baseUrl}/User/login`, request);
   }
 
   // Tüm kullanıcıları getir
   getAllUsers(): Observable<UserResponse[]> {
-    return this.http.get<UserResponse[]>(`${this.baseUrl}/users`);
+    return this.http.get<UserResponse[]>(`${this.baseUrl}/User`);
   }
 
   // ID'ye göre kullanıcı getir

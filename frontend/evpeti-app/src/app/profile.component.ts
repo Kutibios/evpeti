@@ -105,7 +105,22 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     // View init olduktan sonra veri yükle
     console.log('ngAfterViewInit triggered');
-    this.loadUserData();
+    
+    // Kullanıcı verisi varsa yükle, yoksa bekle
+    if (this.user && this.user.id) {
+      this.loadUserData();
+    } else {
+      console.log('User data not ready yet, waiting...');
+      // Kullanıcı verisi hazır olana kadar bekle
+      setTimeout(() => {
+        if (this.user && this.user.id) {
+          this.loadUserData();
+        } else {
+          console.error('User data still not available after timeout');
+          this.uiService.setError('Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.');
+        }
+      }, 1000);
+    }
   }
 
   ngOnDestroy() {
@@ -117,6 +132,13 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   loadUserData() {
+    // Kullanıcı kontrolü ekle
+    if (!this.user || !this.user.id) {
+      console.error('User data is not available');
+      this.uiService.setError('Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.');
+      return;
+    }
+    
     console.log('Loading user data for user ID:', this.user.id);
     this.uiService.setLoading(true);
 

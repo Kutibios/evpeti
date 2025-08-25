@@ -19,6 +19,9 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// HttpClient ekle
+builder.Services.AddHttpClient();
+
 // CORS ekle
 builder.Services.AddCors(options =>
 {
