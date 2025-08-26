@@ -27,39 +27,7 @@
   position: relative;
 }
 
-.refresh-btn, .debug-btn {
-  position: absolute;
-  top: 0;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
 
-.refresh-btn {
-  right: 0;
-  background: #667eea;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.debug-btn {
-  right: 120px;
-  background: #f39c12;
-  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
-}
-
-.refresh-btn:hover, .debug-btn:hover {
-  transform: translateY(-2px);
-}
-
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
 
 .logo-container {
   text-align: center;

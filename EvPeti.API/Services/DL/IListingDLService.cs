@@ -1,4 +1,5 @@
 using EvPeti.API.Models;
+using System.Linq.Expressions;
 
 namespace EvPeti.API.Services.DL
 {
@@ -14,5 +15,9 @@ namespace EvPeti.API.Services.DL
         Task<Listing> UpdateAsync(int id, Listing listing);
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
+        
+        // Yeni eklenen metodlar
+        IEnumerable<Listing> GetList(Expression<Func<Listing, bool>>? filter = null);
+        Listing? Get(Expression<Func<Listing, bool>> filter);
     }
 }

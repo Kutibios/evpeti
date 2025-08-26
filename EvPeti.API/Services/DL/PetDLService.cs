@@ -1,6 +1,7 @@
 using EvPeti.API.Data;
 using EvPeti.API.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace EvPeti.API.Services.DL
 {
@@ -79,6 +80,26 @@ namespace EvPeti.API.Services.DL
         public async Task<bool> ExistsAsync(int id)
         {
             return await _context.Pets.AnyAsync(p => p.Id == id);
+        }
+
+        // Mentor'umuzun önerdiği yeni metodlar
+        public IEnumerable<Pet> GetList(Expression<Func<Pet, bool>> filter = null)
+        {
+            var query = _context.Pets.AsQueryable();
+            
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            
+            return query.Include(p => p.User).ToList();
+        }
+
+        public Pet Get(Expression<Func<Pet, bool>> filter)
+        {
+            return _context.Pets
+                .Include(p => p.User)
+                .FirstOrDefault(filter);
         }
     }
 }

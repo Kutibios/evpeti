@@ -1,7 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using EvPeti.API.Models;
-using EvPeti.API.Services;
+using EvPeti.API.Services.Managers;
 using System.ComponentModel.DataAnnotations;
 
 namespace EvPeti.API.Controllers
@@ -10,20 +10,27 @@ namespace EvPeti.API.Controllers
     [Route("api/[controller]")]
     public class ListingsController : ControllerBase
     {
-        private readonly IListingService _listingService;
+        private readonly ListingManager _listingManager;
 
-        public ListingsController(IListingService listingService)
+        public ListingsController(ListingManager listingManager)
         {
-            _listingService = listingService;
+            _listingManager = listingManager;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public IActionResult GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var listings = await _listingService.GetAllActiveListingsAsync(page, pageSize);
-                var totalCount = await _listingService.GetTotalActiveListingsCountAsync();
+                var result = _listingManager.GetActiveListings();
+                
+                if (!result.Success)
+                {
+                    return BadRequest(result.Message);
+                }
+
+                var listings = result.Data.ToList();
+                var totalCount = listings.Count;
                 
                 var listingDtos = listings.Select(l => new ListingDto
                 {
@@ -69,12 +76,18 @@ namespace EvPeti.API.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetByUserId(int userId)
+        public IActionResult GetByUserId(int userId)
         {
             try
             {
-                var listings = await _listingService.GetUserListingsAsync(userId);
-                var listingDtos = listings.Select(l => new ListingDto
+                var result = _listingManager.GetListingsByUserId(userId);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(result.Message);
+                }
+
+                var listingDtos = result.Data.Select(l => new ListingDto
                 {
                     Id = l.Id,
                     UserId = l.UserId,
@@ -99,11 +112,8 @@ namespace EvPeti.API.Controllers
                     UserPhone = l.User?.Phone,
                     UserRating = l.User?.Rating
                 });
+                
                 return Ok(listingDtos);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -112,15 +122,20 @@ namespace EvPeti.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public IActionResult GetById(int id)
         {
             try
             {
                 Console.WriteLine($"ListingsController: GetById çağrıldı - ID: {id}");
-                var listing = await _listingService.GetListingByIdAsync(id);
-                Console.WriteLine($"ListingsController: Service'ten dönen listing: {listing?.Id}");
-                if (listing == null)
-                    return NotFound($"Listing with ID {id} not found");
+                var result = _listingManager.GetListingById(id);
+                
+                if (!result.Success)
+                {
+                    return NotFound(result.Message);
+                }
+
+                var listing = result.Data;
+                Console.WriteLine($"ListingsController: Manager'dan dönen listing: {listing?.Id}");
 
                 // Response için DTO oluştur
                 var listingDto = new ListingDto
@@ -154,10 +169,6 @@ namespace EvPeti.API.Controllers
 
                 return Ok(listingDto);
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
@@ -165,66 +176,15 @@ namespace EvPeti.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateListingDto createDto)
+        public IActionResult Create([FromBody] CreateListingDto createDto)
         {
             try
             {
                 if (createDto == null)
                     return BadRequest("Listing data is required");
 
-                // DTO'dan Listing model'ine dönüştür
-                var listing = new Listing
-                {
-                    UserId = createDto.UserId,
-                    Title = createDto.Title,
-                    Type = createDto.Type,
-                    Price = createDto.Price,
-                    Location = createDto.Location,
-                    StartDate = createDto.StartDate,
-                    EndDate = createDto.EndDate,
-                    IsAvailable = createDto.IsAvailable,
-                    Description = createDto.Description,
-                    Status = createDto.Status,
-                    Experience = createDto.Experience,
-                    Services = createDto.Services,
-                    ImageUrls = createDto.ImageUrls,
-                    IsActive = createDto.IsActive
-                };
-
-                var newListing = await _listingService.CreateListingAsync(listing);
-                
-                // Response için DTO oluştur
-                var responseDto = new ListingDto
-                {
-                    Id = newListing.Id,
-                    UserId = newListing.UserId,
-                    Title = newListing.Title,
-                    Type = newListing.Type,
-                    Price = newListing.Price,
-                    Location = newListing.Location,
-                    StartDate = newListing.StartDate,
-                    EndDate = newListing.EndDate,
-                    IsAvailable = newListing.IsAvailable,
-                    Description = newListing.Description,
-                    Status = newListing.Status,
-                    Experience = newListing.Experience,
-                    Services = newListing.Services,
-                    ImageUrls = newListing.ImageUrls,
-                    IsActive = newListing.IsActive,
-                    CreatedAt = newListing.CreatedAt,
-                    
-                    // User bilgileri
-                    UserName = newListing.User?.Name,
-                    UserEmail = newListing.User?.Email,
-                    UserPhone = newListing.User?.Phone,
-                    UserRating = newListing.User?.Rating
-                };
-
-                return CreatedAtAction(nameof(GetById), new { id = newListing.Id }, responseDto);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
+                // TODO: ListingManager'a CreateListing metodu eklenmeli
+                return BadRequest("CreateListing metodu henüz implement edilmedi");
             }
             catch (Exception ex)
             {
@@ -233,64 +193,15 @@ namespace EvPeti.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateListingDto updateDto)
+        public IActionResult Update(int id, [FromBody] UpdateListingDto updateDto)
         {
             try
             {
                 if (updateDto == null)
                     return BadRequest("Listing data is required");
 
-                // DTO'dan Listing model'ine dönüştür
-                var listing = new Listing
-                {
-                    Title = updateDto.Title,
-                    Type = updateDto.Type,
-                    Price = updateDto.Price ?? 0,
-                    Location = updateDto.Location,
-                    StartDate = updateDto.StartDate ?? DateTime.UtcNow,
-                    EndDate = updateDto.EndDate ?? DateTime.UtcNow,
-                    IsAvailable = updateDto.IsAvailable ?? true,
-                    Description = updateDto.Description,
-                    Status = updateDto.Status,
-                    Experience = updateDto.Experience ?? 0,
-                    Services = updateDto.Services,
-                    ImageUrls = updateDto.ImageUrls,
-                    IsActive = updateDto.IsActive ?? true
-                };
-
-                var updatedListing = await _listingService.UpdateListingAsync(id, listing);
-                
-                // Response için DTO oluştur
-                var responseDto = new ListingDto
-                {
-                    Id = updatedListing.Id,
-                    UserId = updatedListing.UserId,
-                    Title = updatedListing.Title,
-                    Type = updatedListing.Type,
-                    Price = updatedListing.Price,
-                    Location = updatedListing.Location,
-                    StartDate = updatedListing.StartDate,
-                    EndDate = updatedListing.EndDate,
-                    IsAvailable = updatedListing.IsAvailable,
-                    Description = updatedListing.Description,
-                    Status = updatedListing.Status,
-                    Experience = updatedListing.Experience,
-                    Services = updatedListing.Services,
-                    ImageUrls = updatedListing.ImageUrls,
-                    IsActive = updatedListing.IsActive,
-                    CreatedAt = updatedListing.CreatedAt,
-                    
-                    // User bilgileri
-                    UserName = updatedListing.User?.Name,
-                    UserEmail = updatedListing.User?.Email,
-                    UserPhone = updatedListing.User?.Phone
-                };
-
-                return Ok(responseDto);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
+                // TODO: ListingManager'a UpdateListing metodu eklenmeli
+                return BadRequest("UpdateListing metodu henüz implement edilmedi");
             }
             catch (Exception ex)
             {
@@ -299,16 +210,12 @@ namespace EvPeti.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
             try
             {
-                await _listingService.DeleteListingAsync(id);
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
+                // TODO: ListingManager'a DeleteListing metodu eklenmeli
+                return BadRequest("DeleteListing metodu henüz implement edilmedi");
             }
             catch (Exception ex)
             {

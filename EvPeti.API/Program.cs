@@ -42,13 +42,13 @@ builder.Services.AddScoped<IPetDLService, PetDLService>();
 builder.Services.AddScoped<IListingDLService, ListingDLService>();
 
 // Business Services
-builder.Services.AddScoped<IPetService, PetService>();
-builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Managers
 builder.Services.AddScoped<IDLServiceManager, DLServiceManager>();
+builder.Services.AddScoped<PetManager>();
+builder.Services.AddScoped<ListingManager>();
 
 var app = builder.Build();
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 
 export interface Pet {
   id: number;
@@ -123,6 +123,13 @@ export interface Review {
   booking?: Booking;
 }
 
+// Backend DataResult interface'i
+export interface DataResult<T> {
+  data: T;
+  success: boolean;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -151,26 +158,29 @@ export class DataService {
 
   // PETS OPERATIONS
   getUserPets(userId: number): Observable<Pet[]> {
-    return this.http.get<Pet[]>(`${this.baseUrl}/pets/user/${userId}`, { headers: this.getHeaders() })
+    return this.http.get<DataResult<Pet[]>>(`${this.baseUrl}/Pets/GetPetsByUserId/${userId}`, { headers: this.getHeaders() })
       .pipe(
-        tap(pets => {
-          console.log('Pets loaded from API:', pets);
-          this.petsSubject.next(pets || []);
-        })
+        tap(response => {
+          if (response && response.success && response.data) {
+            this.petsSubject.next(response.data || []);
+          } else {
+            this.petsSubject.next([]);
+          }
+        }),
+        map(response => response?.data || [])
       );
   }
 
   createPet(pet: Omit<Pet, 'id' | 'createdAt'>): Observable<Pet> {
-    console.log('Sending pet data to API:', pet);
-    console.log('API URL:', `${this.baseUrl}/pets`);
-    
-    return this.http.post<Pet>(`${this.baseUrl}/pets`, pet, { headers: this.getHeaders() })
+    return this.http.post<DataResult<Pet>>(`${this.baseUrl}/Pets/CreatePet`, pet, { headers: this.getHeaders() })
       .pipe(
-        tap(newPet => {
-          console.log('Pet created successfully:', newPet);
-          const currentPets = this.petsSubject.value;
-          this.petsSubject.next([...currentPets, newPet]);
-        })
+        tap(response => {
+          if (response && response.success && response.data) {
+            const currentPets = this.petsSubject.value;
+            this.petsSubject.next([...currentPets, response.data]);
+          }
+        }),
+        map(response => response?.data)
       );
   }
 

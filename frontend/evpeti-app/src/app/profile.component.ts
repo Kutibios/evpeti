@@ -49,74 +49,63 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
     // DataService state'ini dinle - DL pattern
     this.dataService.pets$.subscribe({
       next: (pets) => {
-        console.log('Pets subscription triggered:', pets);
         this.pets = pets || [];
-        console.log('Pets updated from DataService:', this.pets);
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        // SSR sırasında detectChanges çağırma
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       },
       error: (error) => {
         console.error('Pets subscription error:', error);
         this.pets = [];
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       }
     });
 
     this.dataService.listings$.subscribe({
       next: (listings) => {
-        console.log('Listings subscription triggered:', listings);
         this.listings = listings || [];
-        console.log('Listings updated from DataService:', this.listings);
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       },
       error: (error) => {
         console.error('Listings subscription error:', error);
         this.listings = [];
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       }
     });
   }
 
   ngOnInit() {
-    console.log('ProfileComponent ngOnInit started');
-    
     if (!this.authService.isLoggedIn()) {
-      console.log('User not logged in, redirecting to login');
       this.router.navigate(['/login']);
       return;
     }
 
     this.user = this.authService.getCurrentUser();
     this.isLoggedIn = true;
-    console.log('Current user loaded:', this.user);
     
     if (!this.user || !this.user.id) {
-      console.error('User or user ID is missing:', this.user);
       this.uiService.setError('Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.');
       return;
     }
-    
-    console.log('User ID:', this.user.id);
   }
 
   ngAfterViewInit() {
     // View init olduktan sonra veri yükle
-    console.log('ngAfterViewInit triggered');
-    
-    // Kullanıcı verisi varsa yükle, yoksa bekle
     if (this.user && this.user.id) {
       this.loadUserData();
     } else {
-      console.log('User data not ready yet, waiting...');
       // Kullanıcı verisi hazır olana kadar bekle
       setTimeout(() => {
         if (this.user && this.user.id) {
           this.loadUserData();
         } else {
-          console.error('User data still not available after timeout');
           this.uiService.setError('Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.');
         }
       }, 1000);
@@ -134,61 +123,56 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   loadUserData() {
     // Kullanıcı kontrolü ekle
     if (!this.user || !this.user.id) {
-      console.error('User data is not available');
       this.uiService.setError('Kullanıcı bilgileri yüklenemedi. Lütfen tekrar giriş yapın.');
       return;
     }
     
-    console.log('Loading user data for user ID:', this.user.id);
     this.uiService.setLoading(true);
 
     // DL Pattern: Data Layer'dan veri çek
-    console.log('=== DL Pattern: Loading Data ===');
     
     // Pets'i yükle
     this.dataService.getUserPets(this.user.id).subscribe({
       next: (pets) => {
-        console.log('DL: Pets loaded successfully:', pets);
-        console.log('DL: Pets count:', pets?.length || 0);
         this.uiService.setLoading(false);
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       },
       error: (error) => {
-        console.error('DL: Error loading pets:', error);
+        console.error('Error loading pets:', error);
         this.uiService.setLoading(false);
         if (error.status === 0) {
           this.uiService.setError('Backend sunucusu çalışmıyor. Lütfen backend\'i başlatın.');
         } else {
           this.uiService.setError('Pet profilleri yüklenirken hata oluştu: ' + error.message);
         }
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       }
     });
 
     // Listings'i yükle
     this.dataService.getUserListings(this.user.id).subscribe({
       next: (listings) => {
-        console.log('DL: Listings loaded successfully:', listings);
-        console.log('DL: Listings count:', listings?.length || 0);
-        this.listings = listings || []; // Listings'i component'e ata
-        console.log('DL: Listings assigned to component:', this.listings);
-        console.log('DL: First listing imageUrls:', this.listings[0]?.imageUrls);
+        this.listings = listings || [];
         this.uiService.setLoading(false);
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       },
       error: (error) => {
-        console.error('DL: Error loading listings:', error);
+        console.error('Error loading listings:', error);
         this.uiService.setLoading(false);
         if (error.status === 0) {
           this.uiService.setError('Backend sunucusu çalışmıyor. Lütfen backend\'i başlatın.');
         } else {
           this.uiService.setError('İlanlar yüklenirken hata oluştu: ' + error.message);
         }
-        // Change detection'ı tetikle
-        this.cdr.detectChanges();
+        if (typeof document !== 'undefined') {
+          this.cdr.detectChanges();
+        }
       }
     });
   }
@@ -214,23 +198,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/']);
   }
 
-  debugUserInfo() {
-    console.log('=== DEBUG INFO ===');
-    console.log('Current user:', this.user);
-    console.log('User ID:', this.user?.id);
-    console.log('Is logged in:', this.authService.isLoggedIn());
-    console.log('Pets count:', this.pets.length);
-          console.log('Pets details:', this.pets.map(pet => ({
-        id: pet.id,
-        name: pet.name,
-        photo: pet.photo,
-        hasPhoto: !!pet.photo
-      })));
-    console.log('Listings count:', this.listings.length);
-    console.log('Is loading:', this.isLoading);
-    console.log('Error message:', this.errorMessage);
-    console.log('==================');
-  }
+
 
   editPet(pet: Pet) {
     console.log('Edit pet:', pet);

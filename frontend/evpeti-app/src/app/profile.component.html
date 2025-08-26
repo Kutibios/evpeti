@@ -8,13 +8,7 @@
         <h2>{{ user?.name }}</h2>
         <p>{{ user?.email }} | {{ user?.city }}</p>
       </div>
-      <button class="refresh-btn" (click)="loadUserData()" title="Yenile" [disabled]="isLoading">
-        <span *ngIf="!isLoading">🔄 Yenile</span>
-        <span *ngIf="isLoading">⏳ Yenileniyor...</span>
-      </button>
-      <button class="debug-btn" (click)="debugUserInfo()" title="Debug">
-        🐛 Debug
-      </button>
+
     </div>
 
     <div class="profile-content">
