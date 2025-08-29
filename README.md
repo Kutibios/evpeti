@@ -1,1 +1,1 @@
-evpeti
+![EvPeti Logo](assets/logo.png)
