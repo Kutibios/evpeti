@@ -77,29 +77,10 @@ git clone https://github.com/Kutibios/evpeti.git
 cd evpeti
 ```
 
-### 2. Backend Kurulumu
-```bash
-cd EvPeti.API
-dotnet restore
-dotnet build
-dotnet run
-```
-
-### 3. Frontend Kurulumu
-```bash
-cd frontend/evpeti-app
-npm install
-npm start
-# Eğer npm start çalışmazsa:
-ng serve
-# Eğer ng serve çalışmazsa:
-npm run build
-ng serve --prod
-```
 ### 2. Database Kurulumu
 **SQL Server Kurulumu (Gerekli)**
 
-**Docker ile SQL Server**
+**Docker ile SQL Server:**
 ```bash
 # SQL Server container'ını başlat
 # SA_PASSWORD kısmına KENDİ belirlediğiniz şifreyi yazın
@@ -111,12 +92,32 @@ docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MyPassword123!" -p 1433:1433 --nam
 # Container'ın çalıştığını kontrol et
 docker ps
 ```
-### 6. Veritabanı Migration
+
+### 3. Backend Kurulumu
+```bash
+cd EvPeti.API
+dotnet restore
+dotnet build
+dotnet run
+```
+
+### 4. Frontend Kurulumu
+```bash
+cd frontend/evpeti-app
+npm install
+npm start
+# Eğer npm start çalışmazsa:
+ng serve
+# Eğer ng serve çalışmazsa:
+npm run build
+ng serve --prod
+```
+
+### 5. Veritabanı Migration
 ```bash
 cd EvPeti.API
 dotnet ef database update
 ```
-
 
 ## Kullanım
 
@@ -125,53 +126,62 @@ dotnet ef database update
    - Ana sayfada "Kayıt Ol" butonuna tıklayın
    - Email adresinizi ve güçlü bir şifre girin
    - Email doğrulamasını tamamlayın
-   
+     <img width="318" height="575" alt="image" src="https://github.com/user-attachments/assets/0f092266-7dbd-4460-962e-86eaef637ed1" />
 
-2. **Profil Tamamlama**
-   - Kişisel bilgilerinizi girin (ad, soyad, telefon)
-   - Profil fotoğrafı ekleyin
-   - Adres bilgilerinizi güncelleyin
+2. **Ev İlanı Açma (Ev Sahipleri İçin)**
+   - "İlan Aç" butonuna tıklayın
+   - Ev bilgilerinizi girin (adres, oda sayısı, evcil hayvan uyumluluğu)
+   - Hizmet türünü seçin (günlük bakım, gece bakımı, uzun süreli)
+   - Fiyat belirleyin
+   - Ev fotoğraflarını ekleyin
+   - İlanı yayınlayın
+     <img width="473" height="814" alt="image" src="https://github.com/user-attachments/assets/fd598b33-1fc0-4649-b781-91de2a964c21" />
+
 
 ### 🏠 Evcil Hayvan Profili
-1. **Yeni Profil Oluşturma**
+   **Yeni Profil Oluşturma**
    - "Evcil Hayvan Ekle" butonuna tıklayın
    - Hayvan türünü seçin (köpek, kedi, kuş, vb.)
    - Yaş, cins ve ağırlık bilgilerini girin
    - Özel ihtiyaçları belirtin (ilaç, diyet, davranış)
+     <img width="406" height="791" alt="image" src="https://github.com/user-attachments/assets/dc1eca1d-95ec-4564-8c56-80b02f55ec09" />
 
-2. **Fotoğraf Yükleme**
-   - En az 3-5 fotoğraf ekleyin
-   - Farklı açılardan çekilmiş fotoğraflar seçin
-   - Yüksek kaliteli görseller kullanın
 
 ### 📅 Rezervasyon Sistemi
 1. **Hizmet Arama**
    - "Hizmet Ara" bölümünde konumunuzu girin
    - Tarih aralığını seçin
    - Hizmet türünü belirleyin (günlük bakım, gece bakımı)
+     <img width="1396" height="640" alt="image" src="https://github.com/user-attachments/assets/7a8307ec-1262-4f74-bed8-fbdd5a014c38" />
+
 
 2. **Rezervasyon Yapma**
    - Uygun ev sahibini seçin
    - Detayları inceleyin ve onaylayın
    - Ödeme bilgilerinizi girin
    - Rezervasyon onayını bekleyin
+     <img width="674" height="688" alt="image" src="https://github.com/user-attachments/assets/8bb68521-13b1-408c-9fb1-c5f4cd555cde" />
 
 3. **Rezervasyon Takibi**
    - "Rezervasyonlarım" bölümünden durumu izleyin
    - Gerekirse iptal veya değişiklik yapın
    - Hizmet sonrası değerlendirme yapın
+     <img width="738" height="610" alt="image" src="https://github.com/user-attachments/assets/18f9eeed-1953-4780-8942-eef66af08d20" />
+
 
 ### 💬 Mesajlaşma
 1. **İletişim Başlatma**
    - Ev sahibi ile rezervasyon öncesi mesajlaşın
    - Özel istekleri belirtin
    - Hizmet detaylarını netleştirin
+     <img width="1901" height="268" alt="image" src="https://github.com/user-attachments/assets/376bc251-82b1-4024-a660-fa5429ddc4af" />
+
 
 2. **Hizmet Sırasında**
    - Güncellemeler alın
    - Fotoğraf paylaşın
    - Acil durumlarda hızlı iletişim kurun
-
+     <img width="370" height="702" alt="image" src="https://github.com/user-attachments/assets/8cc6fc9d-83f1-4460-b6c6-6da0bedd1e8b" />
 
 
 ### 📱 Mobil Kullanım
