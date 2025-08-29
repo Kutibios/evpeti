@@ -126,6 +126,7 @@ dotnet ef database update
    - Ana sayfada "Kayıt Ol" butonuna tıklayın
    - Email adresinizi ve güçlü bir şifre girin
    - Email doğrulamasını tamamlayın
+     
      <img width="318" height="575" alt="image" src="https://github.com/user-attachments/assets/0f092266-7dbd-4460-962e-86eaef637ed1" />
 
 2. **Ev İlanı Açma (Ev Sahipleri İçin)**
@@ -135,6 +136,7 @@ dotnet ef database update
    - Fiyat belirleyin
    - Ev fotoğraflarını ekleyin
    - İlanı yayınlayın
+     
      <img width="473" height="814" alt="image" src="https://github.com/user-attachments/assets/fd598b33-1fc0-4649-b781-91de2a964c21" />
 
 
@@ -144,6 +146,7 @@ dotnet ef database update
    - Hayvan türünü seçin (köpek, kedi, kuş, vb.)
    - Yaş, cins ve ağırlık bilgilerini girin
    - Özel ihtiyaçları belirtin (ilaç, diyet, davranış)
+     
      <img width="406" height="791" alt="image" src="https://github.com/user-attachments/assets/dc1eca1d-95ec-4564-8c56-80b02f55ec09" />
 
 
@@ -152,6 +155,7 @@ dotnet ef database update
    - "Hizmet Ara" bölümünde konumunuzu girin
    - Tarih aralığını seçin
    - Hizmet türünü belirleyin (günlük bakım, gece bakımı)
+     
      <img width="1396" height="640" alt="image" src="https://github.com/user-attachments/assets/7a8307ec-1262-4f74-bed8-fbdd5a014c38" />
 
 
@@ -160,12 +164,14 @@ dotnet ef database update
    - Detayları inceleyin ve onaylayın
    - Ödeme bilgilerinizi girin
    - Rezervasyon onayını bekleyin
+     
      <img width="674" height="688" alt="image" src="https://github.com/user-attachments/assets/8bb68521-13b1-408c-9fb1-c5f4cd555cde" />
 
 3. **Rezervasyon Takibi**
    - "Rezervasyonlarım" bölümünden durumu izleyin
    - Gerekirse iptal veya değişiklik yapın
    - Hizmet sonrası değerlendirme yapın
+     
      <img width="738" height="610" alt="image" src="https://github.com/user-attachments/assets/18f9eeed-1953-4780-8942-eef66af08d20" />
 
 
@@ -174,6 +180,7 @@ dotnet ef database update
    - Ev sahibi ile rezervasyon öncesi mesajlaşın
    - Özel istekleri belirtin
    - Hizmet detaylarını netleştirin
+     
      <img width="1901" height="268" alt="image" src="https://github.com/user-attachments/assets/376bc251-82b1-4024-a660-fa5429ddc4af" />
 
 
@@ -181,6 +188,7 @@ dotnet ef database update
    - Güncellemeler alın
    - Fotoğraf paylaşın
    - Acil durumlarda hızlı iletişim kurun
+     
      <img width="370" height="702" alt="image" src="https://github.com/user-attachments/assets/8cc6fc9d-83f1-4460-b6c6-6da0bedd1e8b" />
 
 
