@@ -116,7 +116,7 @@ docker ps
 cd EvPeti.API
 dotnet ef database update
 ```
-```
+
 
 ## Kullanım
 
