@@ -1,1 +1,1 @@
-![EvPeti Logo](frontend/evpeti-app/src/assets/logo.png){: width="200px"}
+<img src="frontend/evpeti-app/src/assets/logo.png" alt="EvPeti Logo" width="200" height="auto" style="display: block; margin: 0 auto;">
