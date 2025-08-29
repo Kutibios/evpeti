@@ -1,1 +1,1 @@
-![EvPeti Logo](assets/logo.png)
+![EvPeti Logo](frontend/evpeti-app/src/assets/logo.png)
