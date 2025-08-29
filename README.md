@@ -96,6 +96,27 @@ ng serve
 npm run build
 ng serve --prod
 ```
+### 2. Database Kurulumu
+**SQL Server Kurulumu (Gerekli)**
+
+**Docker ile SQL Server**
+```bash
+# SQL Server container'ını başlat
+# SA_PASSWORD kısmına KENDİ belirlediğiniz şifreyi yazın
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=KENDI_SIFRENIZ" -p 1433:1433 --name evpeti-sql -d mcr.microsoft.com/mssql/server:2019-latest
+
+# Örnek: Şifreniz "MyPassword123!" ise
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MyPassword123!" -p 1433:1433 --name evpeti-sql -d mcr.microsoft.com/mssql/server:2019-latest
+
+# Container'ın çalıştığını kontrol et
+docker ps
+```
+### 6. Veritabanı Migration
+```bash
+cd EvPeti.API
+dotnet ef database update
+```
+```
 
 ## Kullanım
 
