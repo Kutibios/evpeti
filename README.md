@@ -13,3 +13,7 @@
 ![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
 ![Status](https://img.shields.io/badge/status-Core%20Ready-brightgreen)
 ![Docker + K8s](https://img.shields.io/badge/Docker%20%2B%20K8s-In%20Progress-orange)
+
+
+<img width="329" height="710" alt="image" src="https://github.com/user-attachments/assets/6bbbd894-c27c-4d42-afb4-bde0cfb2995f" />
+
