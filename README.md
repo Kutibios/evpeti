@@ -202,15 +202,7 @@ dotnet ef database update
 - Swagger UI: `https://localhost:5001/swagger`
 - Endpoint'ler ve kullanım örneklerine buradan ulaşabilirsiniz.
 
-## Katkı
 
-Bu projeye katkıda bulunmak istiyorsanız:
-
-1. Fork yapın
-2. Feature branch oluşturun
-3. Commit yapın
-4. Push yapın
-5. Pull Request açın
 
 ### İletişim
 
