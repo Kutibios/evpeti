@@ -3,6 +3,10 @@ EvPeti.API/bin/
 EvPeti.API/obj/
 EvPeti.API/Properties/launchSettings.json
 
+# Configuration files with sensitive data
+EvPeti.API/appsettings.json
+EvPeti.API/appsettings.Development.json
+
 # Angular frontend kısmı
 frontend/evpeti-app/node_modules/
 frontend/evpeti-app/dist/
